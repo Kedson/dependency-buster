@@ -238,6 +238,25 @@ The benchmark suite generates a beautiful Bauhaus-inspired dashboard:
 - **Security Summary** - Vulnerability breakdown by severity
 - **License Matrix** - License distribution across packages
 - **Namespace Map** - Code structure visualization
+- **Smoke Tests** - Run tests directly from the dashboard
+
+### Local Dashboard Server
+
+A lightweight Go server with hot-reload for local development:
+
+```bash
+# Build and serve (opens browser automatically)
+cd dpb-benchmark
+make serve
+
+# Development mode with Air hot-reload
+make dev
+
+# Install Air (first time only)
+make install-air
+```
+
+The server runs on `http://localhost:8080` by default.
 
 ---
 

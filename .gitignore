@@ -27,3 +27,7 @@ dpb-benchmark/results/*.json
 # Temp files
 *.bak
 *.tmp
+
+# Dashboard server
+dpb-benchmark/server/dashboard-server
+dpb-benchmark/server/tmp/
