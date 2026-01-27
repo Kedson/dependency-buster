@@ -6,7 +6,7 @@ mod types;
 use anyhow::Result;
 use std::collections::HashMap;
 
-use analyzer::{dependency, namespace, psr4, security};
+use analyzer::{dependency, namespace, psr4, security, suggestions, tracker};
 use mcp::{InputSchema, Property, Server, Tool};
 
 #[tokio::main]
@@ -273,6 +273,95 @@ async fn register_tools(server: &Server) {
                 let output_path = args.get("output_path")
                     .and_then(|v| v.as_str());
                 analyzer::generate_comprehensive_docs(repo_path, output_path)
+            },
+        )
+        .await;
+
+    // Tool 11: Track Dependencies
+    server
+        .register_tool(
+            Tool {
+                name: "track_dependencies".to_string(),
+                description: "Create a timestamped snapshot of dependencies for tracking changes over time".to_string(),
+                input_schema: InputSchema {
+                    schema_type: "object".to_string(),
+                    properties: HashMap::from([
+                        ("repo_path".to_string(), Property {
+                            property_type: "string".to_string(),
+                            description: "Absolute path to repository".to_string(),
+                        }),
+                        ("save".to_string(), Property {
+                            property_type: "boolean".to_string(),
+                            description: "Save snapshot to disk for future comparison (default: true)".to_string(),
+                        }),
+                    ]),
+                    required: vec!["repo_path".to_string()],
+                },
+                annotations: None,
+            },
+            |args| {
+                let repo_path = args.get("repo_path")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| anyhow::anyhow!("repo_path required"))?;
+                let save = args.get("save")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(true);
+                let snapshot = tracker::create_dependency_snapshot(repo_path)?;
+                if save {
+                    tracker::save_snapshot(repo_path, &snapshot)?;
+                }
+                Ok(serde_json::to_string_pretty(&snapshot)?)
+            },
+        )
+        .await;
+
+    // Tool 12: Get Dependency History
+    server
+        .register_tool(
+            repo_path_tool(
+                "get_dependency_history",
+                "Get dependency history with timestamps, recently added/updated, and stale packages"
+            ),
+            |args| {
+                let repo_path = args.get("repo_path")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| anyhow::anyhow!("repo_path required"))?;
+                let history = tracker::get_dependency_history(repo_path)?;
+                Ok(serde_json::to_string_pretty(&history)?)
+            },
+        )
+        .await;
+
+    // Tool 13: Check Compliance
+    server
+        .register_tool(
+            repo_path_tool(
+                "check_compliance",
+                "Check dependencies for compliance issues (licenses, outdated, deprecated)"
+            ),
+            |args| {
+                let repo_path = args.get("repo_path")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| anyhow::anyhow!("repo_path required"))?;
+                let issues = tracker::check_compliance(repo_path)?;
+                Ok(serde_json::to_string_pretty(&issues)?)
+            },
+        )
+        .await;
+
+    // Tool 14: Get Agent Suggestions
+    server
+        .register_tool(
+            repo_path_tool(
+                "get_agent_suggestions",
+                "Get structured suggestions for AI agents (Cursor, Cline, Claude Code) about dependency issues"
+            ),
+            |args| {
+                let repo_path = args.get("repo_path")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| anyhow::anyhow!("repo_path required"))?;
+                let response = suggestions::generate_agent_suggestions(repo_path)?;
+                Ok(serde_json::to_string_pretty(&response)?)
             },
         )
         .await;

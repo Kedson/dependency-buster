@@ -246,4 +246,97 @@ func registerTools(server *mcp.Server) {
 		}
 		return analyzer.GenerateComprehensiveDocs(repoPath, outputPath)
 	})
+
+	// Tool 11: Track Dependencies
+	server.RegisterTool(mcp.Tool{
+		Name:        "track_dependencies",
+		Description: "Create a timestamped snapshot of dependencies for tracking changes over time",
+		InputSchema: mcp.InputSchema{
+			Type: "object",
+			Properties: map[string]mcp.Property{
+				"repo_path": {
+					Type:        "string",
+					Description: "Absolute path to repository",
+				},
+				"save": {
+					Type:        "boolean",
+					Description: "Save snapshot to disk for future comparison (default: true)",
+				},
+			},
+			Required: []string{"repo_path"},
+		},
+	}, func(args map[string]interface{}) (interface{}, error) {
+		repoPath := args["repo_path"].(string)
+		save := true
+		if s, ok := args["save"].(bool); ok {
+			save = s
+		}
+		snapshot, err := analyzer.CreateDependencySnapshot(repoPath)
+		if err != nil {
+			return nil, err
+		}
+		if save {
+			if err := analyzer.SaveSnapshot(repoPath, snapshot); err != nil {
+				return nil, err
+			}
+		}
+		return snapshot, nil
+	})
+
+	// Tool 12: Get Dependency History
+	server.RegisterTool(mcp.Tool{
+		Name:        "get_dependency_history",
+		Description: "Get dependency history with timestamps, recently added/updated, and stale packages",
+		InputSchema: mcp.InputSchema{
+			Type: "object",
+			Properties: map[string]mcp.Property{
+				"repo_path": {
+					Type:        "string",
+					Description: "Absolute path to repository",
+				},
+			},
+			Required: []string{"repo_path"},
+		},
+	}, func(args map[string]interface{}) (interface{}, error) {
+		repoPath := args["repo_path"].(string)
+		return analyzer.GetDependencyHistory(repoPath)
+	})
+
+	// Tool 13: Check Compliance
+	server.RegisterTool(mcp.Tool{
+		Name:        "check_compliance",
+		Description: "Check dependencies for compliance issues (licenses, outdated, deprecated)",
+		InputSchema: mcp.InputSchema{
+			Type: "object",
+			Properties: map[string]mcp.Property{
+				"repo_path": {
+					Type:        "string",
+					Description: "Absolute path to repository",
+				},
+			},
+			Required: []string{"repo_path"},
+		},
+	}, func(args map[string]interface{}) (interface{}, error) {
+		repoPath := args["repo_path"].(string)
+		return analyzer.CheckCompliance(repoPath)
+	})
+
+	// Tool 14: Get Agent Suggestions
+	server.RegisterTool(mcp.Tool{
+		Name:        "get_agent_suggestions",
+		Description: "Get structured suggestions for AI agents (Cursor, Cline, Claude Code) about dependency issues",
+		InputSchema: mcp.InputSchema{
+			Type: "object",
+			Properties: map[string]mcp.Property{
+				"repo_path": {
+					Type:        "string",
+					Description: "Absolute path to repository",
+				},
+			},
+			Required: []string{"repo_path"},
+		},
+	}, func(args map[string]interface{}) (interface{}, error) {
+		repoPath := args["repo_path"].(string)
+		return analyzer.GenerateAgentSuggestions(repoPath)
+	})
 }
