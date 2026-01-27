@@ -181,55 +181,94 @@ export async function generateAgentSuggestions(
 }
 
 /**
- * Format suggestions for terminal/CLI output
+ * Format suggestions for terminal/CLI output (Claude Code CLI style)
  */
 export function formatSuggestionsForTerminal(suggestions: AgentSuggestion[]): string {
   const lines: string[] = [];
   
-  lines.push('');
-  lines.push('╔══════════════════════════════════════════════════════════════════╗');
-  lines.push('║  dependency-buster // Agent Suggestions                          ║');
-  lines.push('╚══════════════════════════════════════════════════════════════════╝');
-  lines.push('');
-  
-  const severityIcons: Record<string, string> = {
-    critical: '🔴',
-    high: '🟠',
-    medium: '🟡',
-    low: '🟢',
-  };
-  
-  const typeIcons: Record<string, string> = {
-    error: '✗',
-    warning: '⚠',
-    info: 'ℹ',
-    action: '→',
-  };
-  
-  for (const suggestion of suggestions) {
-    const icon = severityIcons[suggestion.severity] || '○';
-    const typeIcon = typeIcons[suggestion.type] || '•';
-    
-    lines.push(`${icon} ${typeIcon} ${suggestion.title}`);
-    lines.push(`   ${suggestion.description}`);
-    
-    if (suggestion.dependency) {
-      lines.push(`   Package: ${suggestion.dependency}@${suggestion.version || 'unknown'}`);
-    }
-    
-    if (suggestion.actions.length > 0) {
-      lines.push('   Actions:');
-      for (const action of suggestion.actions) {
-        if (action.type === 'shell') {
-          lines.push(`     $ ${action.command}`);
-        } else if (action.type === 'link') {
-          lines.push(`     🔗 ${action.command}`);
-        }
-      }
-    }
-    
-    lines.push('');
+  // Count by severity
+  const counts = { critical: 0, high: 0, medium: 0, low: 0 };
+  for (const s of suggestions) {
+    if (s.id !== 'summary') counts[s.severity as keyof typeof counts]++;
   }
+  
+  lines.push('');
+  lines.push('╭─────────────────────────────────────────────────────────────────╮');
+  lines.push('│  dependency-buster                                              │');
+  lines.push('╰─────────────────────────────────────────────────────────────────╯');
+  lines.push('');
+  
+  // Summary line
+  const total = counts.critical + counts.high + counts.medium + counts.low;
+  if (total === 0) {
+    lines.push('  ✓ No issues found');
+    lines.push('');
+    return lines.join('\n');
+  }
+  
+  const parts: string[] = [];
+  if (counts.critical > 0) parts.push(`${counts.critical} critical`);
+  if (counts.high > 0) parts.push(`${counts.high} high`);
+  if (counts.medium > 0) parts.push(`${counts.medium} medium`);
+  if (counts.low > 0) parts.push(`${counts.low} low`);
+  
+  lines.push(`  Found ${total} issue${total !== 1 ? 's' : ''}: ${parts.join(', ')}`);
+  lines.push('');
+  
+  // Group by category
+  const byCategory = new Map<string, AgentSuggestion[]>();
+  for (const s of suggestions) {
+    if (s.id === 'summary') continue;
+    const cat = s.category;
+    if (!byCategory.has(cat)) byCategory.set(cat, []);
+    byCategory.get(cat)!.push(s);
+  }
+  
+  for (const [category, items] of byCategory) {
+    const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
+    lines.push(`  ▸ ${categoryTitle}`);
+    lines.push('');
+    
+    for (const item of items) {
+      // Severity indicator
+      const indicator = item.severity === 'critical' ? '●' :
+                       item.severity === 'high' ? '●' :
+                       item.severity === 'medium' ? '○' : '·';
+      
+      const color = item.severity === 'critical' ? '\x1b[31m' :  // red
+                   item.severity === 'high' ? '\x1b[33m' :       // yellow
+                   item.severity === 'medium' ? '\x1b[36m' :     // cyan
+                   '\x1b[90m';                                   // gray
+      const reset = '\x1b[0m';
+      const dim = '\x1b[2m';
+      
+      // Package name and version
+      if (item.dependency) {
+        lines.push(`    ${color}${indicator}${reset} ${item.dependency}${dim}@${item.version || '?'}${reset}`);
+      } else {
+        lines.push(`    ${color}${indicator}${reset} ${item.title}`);
+      }
+      
+      // Description (dimmed)
+      lines.push(`      ${dim}${item.description}${reset}`);
+      
+      // Quick fix if available
+      const shellAction = item.actions.find(a => a.type === 'shell');
+      if (shellAction) {
+        lines.push(`      ${dim}fix:${reset} ${shellAction.command}`);
+      }
+      
+      lines.push('');
+    }
+  }
+  
+  // Footer with quick commands
+  lines.push('  ─────────────────────────────────────────────────────────────');
+  lines.push('');
+  lines.push('  \x1b[2mQuick commands:\x1b[0m');
+  lines.push('    composer audit          Run security audit');
+  lines.push('    composer update         Update all dependencies');
+  lines.push('');
   
   return lines.join('\n');
 }

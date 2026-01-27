@@ -208,60 +208,121 @@ func GenerateAgentSuggestions(repoPath string) (*AgentSuggestionsResponse, error
 	}, nil
 }
 
-// FormatSuggestionsForTerminal formats suggestions as ASCII terminal output
+// FormatSuggestionsForTerminal formats suggestions as ASCII terminal output (Claude Code CLI style)
 func FormatSuggestionsForTerminal(suggestions []AgentSuggestion) string {
 	var sb strings.Builder
+	
+	// ANSI colors
+	red := "\x1b[31m"
+	yellow := "\x1b[33m"
+	cyan := "\x1b[36m"
+	gray := "\x1b[90m"
+	dim := "\x1b[2m"
+	reset := "\x1b[0m"
 
-	sb.WriteString("\n")
-	sb.WriteString("╔══════════════════════════════════════════════════════════════════╗\n")
-	sb.WriteString("║  dependency-buster // Agent Suggestions                          ║\n")
-	sb.WriteString("╚══════════════════════════════════════════════════════════════════╝\n")
-	sb.WriteString("\n")
-
-	severityIcons := map[string]string{
-		"critical": "🔴",
-		"high":     "🟠",
-		"medium":   "🟡",
-		"low":      "🟢",
+	// Count by severity
+	counts := map[string]int{"critical": 0, "high": 0, "medium": 0, "low": 0}
+	for _, s := range suggestions {
+		if s.ID != "summary" {
+			counts[s.Severity]++
+		}
 	}
 
-	typeIcons := map[string]string{
-		"error":   "✗",
-		"warning": "⚠",
-		"info":    "ℹ",
-		"action":  "→",
+	sb.WriteString("\n")
+	sb.WriteString("╭─────────────────────────────────────────────────────────────────╮\n")
+	sb.WriteString("│  dependency-buster                                              │\n")
+	sb.WriteString("╰─────────────────────────────────────────────────────────────────╯\n")
+	sb.WriteString("\n")
+
+	// Summary line
+	total := counts["critical"] + counts["high"] + counts["medium"] + counts["low"]
+	if total == 0 {
+		sb.WriteString("  ✓ No issues found\n\n")
+		return sb.String()
 	}
 
-	for _, suggestion := range suggestions {
-		icon := severityIcons[suggestion.Severity]
-		if icon == "" {
-			icon = "○"
-		}
-		typeIcon := typeIcons[suggestion.Type]
-		if typeIcon == "" {
-			typeIcon = "•"
-		}
+	var parts []string
+	if counts["critical"] > 0 {
+		parts = append(parts, fmt.Sprintf("%d critical", counts["critical"]))
+	}
+	if counts["high"] > 0 {
+		parts = append(parts, fmt.Sprintf("%d high", counts["high"]))
+	}
+	if counts["medium"] > 0 {
+		parts = append(parts, fmt.Sprintf("%d medium", counts["medium"]))
+	}
+	if counts["low"] > 0 {
+		parts = append(parts, fmt.Sprintf("%d low", counts["low"]))
+	}
 
-		sb.WriteString(fmt.Sprintf("%s %s %s\n", icon, typeIcon, suggestion.Title))
-		sb.WriteString(fmt.Sprintf("   %s\n", suggestion.Description))
+	plural := ""
+	if total != 1 {
+		plural = "s"
+	}
+	sb.WriteString(fmt.Sprintf("  Found %d issue%s: %s\n\n", total, plural, strings.Join(parts, ", ")))
 
-		if suggestion.Dependency != "" {
-			sb.WriteString(fmt.Sprintf("   Package: %s@%s\n", suggestion.Dependency, suggestion.Version))
+	// Group by category
+	byCategory := make(map[string][]AgentSuggestion)
+	for _, s := range suggestions {
+		if s.ID == "summary" {
+			continue
 		}
+		byCategory[s.Category] = append(byCategory[s.Category], s)
+	}
 
-		if len(suggestion.Actions) > 0 {
-			sb.WriteString("   Actions:\n")
-			for _, action := range suggestion.Actions {
+	for category, items := range byCategory {
+		categoryTitle := strings.Title(category)
+		sb.WriteString(fmt.Sprintf("  ▸ %s\n\n", categoryTitle))
+
+		for _, item := range items {
+			// Severity indicator
+			var indicator, color string
+			switch item.Severity {
+			case "critical":
+				indicator = "●"
+				color = red
+			case "high":
+				indicator = "●"
+				color = yellow
+			case "medium":
+				indicator = "○"
+				color = cyan
+			default:
+				indicator = "·"
+				color = gray
+			}
+
+			// Package name and version
+			if item.Dependency != "" {
+				version := item.Version
+				if version == "" {
+					version = "?"
+				}
+				sb.WriteString(fmt.Sprintf("    %s%s%s %s%s@%s%s\n", color, indicator, reset, item.Dependency, dim, version, reset))
+			} else {
+				sb.WriteString(fmt.Sprintf("    %s%s%s %s\n", color, indicator, reset, item.Title))
+			}
+
+			// Description (dimmed)
+			sb.WriteString(fmt.Sprintf("      %s%s%s\n", dim, item.Description, reset))
+
+			// Quick fix if available
+			for _, action := range item.Actions {
 				if action.Type == "shell" {
-					sb.WriteString(fmt.Sprintf("     $ %s\n", action.Command))
-				} else if action.Type == "link" {
-					sb.WriteString(fmt.Sprintf("     🔗 %s\n", action.Command))
+					sb.WriteString(fmt.Sprintf("      %sfix:%s %s\n", dim, reset, action.Command))
+					break
 				}
 			}
-		}
 
-		sb.WriteString("\n")
+			sb.WriteString("\n")
+		}
 	}
+
+	// Footer with quick commands
+	sb.WriteString("  ─────────────────────────────────────────────────────────────\n\n")
+	sb.WriteString(fmt.Sprintf("  %sQuick commands:%s\n", dim, reset))
+	sb.WriteString("    composer audit          Run security audit\n")
+	sb.WriteString("    composer update         Update all dependencies\n\n")
 
 	return sb.String()
 }

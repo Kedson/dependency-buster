@@ -223,54 +223,112 @@ pub fn generate_agent_suggestions(repo_path: &str) -> Result<AgentSuggestionsRes
     })
 }
 
-/// Format suggestions as ASCII terminal output
+/// Format suggestions as ASCII terminal output (Claude Code CLI style)
 pub fn format_suggestions_for_terminal(suggestions: &[AgentSuggestion]) -> String {
     let mut output = String::new();
     
+    // ANSI colors
+    let red = "\x1b[31m";
+    let yellow = "\x1b[33m";
+    let cyan = "\x1b[36m";
+    let gray = "\x1b[90m";
+    let dim = "\x1b[2m";
+    let reset = "\x1b[0m";
+    
+    // Count by severity
+    let mut counts: HashMap<&str, usize> = HashMap::new();
+    counts.insert("critical", 0);
+    counts.insert("high", 0);
+    counts.insert("medium", 0);
+    counts.insert("low", 0);
+    
+    for s in suggestions {
+        if s.id != "summary" {
+            *counts.entry(s.severity.as_str()).or_insert(0) += 1;
+        }
+    }
+    
     output.push_str("\n");
-    output.push_str("╔══════════════════════════════════════════════════════════════════╗\n");
-    output.push_str("║  dependency-buster // Agent Suggestions                          ║\n");
-    output.push_str("╚══════════════════════════════════════════════════════════════════╝\n");
+    output.push_str("╭─────────────────────────────────────────────────────────────────╮\n");
+    output.push_str("│  dependency-buster                                              │\n");
+    output.push_str("╰─────────────────────────────────────────────────────────────────╯\n");
     output.push_str("\n");
     
-    for suggestion in suggestions {
-        let icon = match suggestion.severity.as_str() {
-            "critical" => "🔴",
-            "high" => "🟠",
-            "medium" => "🟡",
-            "low" => "🟢",
-            _ => "○",
-        };
-        
-        let type_icon = match suggestion.suggestion_type.as_str() {
-            "error" => "✗",
-            "warning" => "⚠",
-            "info" => "ℹ",
-            "action" => "→",
-            _ => "•",
-        };
-        
-        output.push_str(&format!("{} {} {}\n", icon, type_icon, suggestion.title));
-        output.push_str(&format!("   {}\n", suggestion.description));
-        
-        if let Some(ref dep) = suggestion.dependency {
-            output.push_str(&format!("   Package: {}@{}\n", 
-                dep, suggestion.version.as_deref().unwrap_or("unknown")));
+    // Summary line
+    let total = counts["critical"] + counts["high"] + counts["medium"] + counts["low"];
+    if total == 0 {
+        output.push_str("  ✓ No issues found\n\n");
+        return output;
+    }
+    
+    let mut parts: Vec<String> = Vec::new();
+    if counts["critical"] > 0 {
+        parts.push(format!("{} critical", counts["critical"]));
+    }
+    if counts["high"] > 0 {
+        parts.push(format!("{} high", counts["high"]));
+    }
+    if counts["medium"] > 0 {
+        parts.push(format!("{} medium", counts["medium"]));
+    }
+    if counts["low"] > 0 {
+        parts.push(format!("{} low", counts["low"]));
+    }
+    
+    let plural = if total != 1 { "s" } else { "" };
+    output.push_str(&format!("  Found {} issue{}: {}\n\n", total, plural, parts.join(", ")));
+    
+    // Group by category
+    let mut by_category: HashMap<&str, Vec<&AgentSuggestion>> = HashMap::new();
+    for s in suggestions {
+        if s.id == "summary" {
+            continue;
         }
+        by_category.entry(s.category.as_str()).or_default().push(s);
+    }
+    
+    for (category, items) in &by_category {
+        let category_title = capitalize(category);
+        output.push_str(&format!("  ▸ {}\n\n", category_title));
         
-        if !suggestion.actions.is_empty() {
-            output.push_str("   Actions:\n");
-            for action in &suggestion.actions {
-                match action.action_type.as_str() {
-                    "shell" => output.push_str(&format!("     $ {}\n", action.command)),
-                    "link" => output.push_str(&format!("     🔗 {}\n", action.command)),
-                    _ => {}
+        for item in items {
+            // Severity indicator
+            let (indicator, color) = match item.severity.as_str() {
+                "critical" => ("●", red),
+                "high" => ("●", yellow),
+                "medium" => ("○", cyan),
+                _ => ("·", gray),
+            };
+            
+            // Package name and version
+            if let Some(ref dep) = item.dependency {
+                let version = item.version.as_deref().unwrap_or("?");
+                output.push_str(&format!("    {}{}{} {}{}@{}{}\n", 
+                    color, indicator, reset, dep, dim, version, reset));
+            } else {
+                output.push_str(&format!("    {}{}{} {}\n", color, indicator, reset, item.title));
+            }
+            
+            // Description (dimmed)
+            output.push_str(&format!("      {}{}{}\n", dim, item.description, reset));
+            
+            // Quick fix if available
+            for action in &item.actions {
+                if action.action_type == "shell" {
+                    output.push_str(&format!("      {}fix:{} {}\n", dim, reset, action.command));
+                    break;
                 }
             }
+            
+            output.push_str("\n");
         }
-        
-        output.push_str("\n");
     }
+    
+    // Footer with quick commands
+    output.push_str("  ─────────────────────────────────────────────────────────────\n\n");
+    output.push_str(&format!("  {}Quick commands:{}\n", dim, reset));
+    output.push_str("    composer audit          Run security audit\n");
+    output.push_str("    composer update         Update all dependencies\n\n");
     
     output
 }
