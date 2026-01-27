@@ -1,0 +1,29 @@
+# Build outputs
+node_modules/
+build/
+dist/
+target/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# Test repos (large)
+test-repos/
+
+# Results (regenerated)
+dpb-benchmark/results/*.json
+
+# Temp files
+*.bak
+*.tmp

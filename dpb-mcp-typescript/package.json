@@ -1,0 +1,38 @@
+{
+  "name": "php-dependency-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for PHP dependency analysis, PSR-4 validation, and multi-repo management",
+  "type": "module",
+  "bin": {
+    "php-dependency-mcp": "./build/server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepare": "npm run build",
+    "clean": "rm -rf build"
+  },
+  "keywords": [
+    "mcp",
+    "php",
+    "composer",
+    "dependencies",
+    "psr-4",
+    "analysis"
+  ],
+  "author": "Faith FM Platform Engineering",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "glob": "^11.0.0",
+    "semver": "^7.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/semver": "^7.5.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

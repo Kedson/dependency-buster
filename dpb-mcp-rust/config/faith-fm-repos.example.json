@@ -1,0 +1,23 @@
+[
+  {
+    "name": "faith-fm-core",
+    "path": "/path/to/faith-fm/core",
+    "type": "application",
+    "team": "Platform Engineering",
+    "description": "Main Faith FM radio streaming application"
+  },
+  {
+    "name": "faith-fm-api",
+    "path": "/path/to/faith-fm/api",
+    "type": "service",
+    "team": "Platform Engineering",
+    "description": "REST API for Faith FM services"
+  },
+  {
+    "name": "faith-fm-cms",
+    "path": "/path/to/faith-fm/cms",
+    "type": "application",
+    "team": "Content Team",
+    "description": "Content management system"
+  }
+]

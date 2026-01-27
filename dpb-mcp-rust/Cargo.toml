@@ -1,0 +1,52 @@
+[package]
+name = "php-dependency-mcp"
+version = "1.0.0"
+edition = "2021"
+authors = ["Faith FM Platform Engineering"]
+description = "Blazing-fast PHP dependency analyzer MCP server"
+
+[[bin]]
+name = "php-dependency-mcp"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# JSON processing
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Regex for PHP parsing
+regex = "1.10"
+lazy_static = "1.4"
+
+# Parallel processing
+rayon = "1.8"
+
+# File operations
+walkdir = "2.4"
+glob = "0.3"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Authentication & crypto
+sha2 = "0.10"
+hex = "0.4"
+rand = "0.8"
+base64 = "0.21"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.release-small]
+inherits = "release"
+opt-level = "z"

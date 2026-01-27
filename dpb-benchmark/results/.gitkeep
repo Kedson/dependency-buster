@@ -1,0 +1,3 @@
+# Results Directory
+Benchmark results are generated here when running:
+./dpb-benchmark/scripts/run-benchmark.sh [path-to-repo]

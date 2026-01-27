@@ -1,0 +1,37 @@
+[
+  {
+    "name": "faith-fm-core",
+    "path": "/path/to/faith-fm/core",
+    "type": "application",
+    "team": "Platform Engineering",
+    "description": "Main Faith FM radio streaming application"
+  },
+  {
+    "name": "faith-fm-api",
+    "path": "/path/to/faith-fm/api",
+    "type": "service",
+    "team": "Platform Engineering",
+    "description": "REST API for Faith FM services"
+  },
+  {
+    "name": "faith-fm-cms",
+    "path": "/path/to/faith-fm/cms",
+    "type": "application",
+    "team": "Content Team",
+    "description": "Content management system for radio programs"
+  },
+  {
+    "name": "faith-fm-podcast-service",
+    "path": "/path/to/faith-fm/podcast-service",
+    "type": "service",
+    "team": "Platform Engineering",
+    "description": "Podcast generation and distribution service"
+  },
+  {
+    "name": "faith-fm-shared-lib",
+    "path": "/path/to/faith-fm/shared-lib",
+    "type": "library",
+    "team": "Platform Engineering",
+    "description": "Shared utilities and components"
+  }
+]
