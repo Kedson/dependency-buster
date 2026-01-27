@@ -25,11 +25,11 @@ type DependencyStats struct {
 	UpToDate         int `json:"upToDate"`
 }
 
-// AnalyzeDependencies performs comprehensive dependency analysis
-func AnalyzeDependencies(repoPath string) (string, error) {
+// AnalyzeDependenciesRaw performs comprehensive dependency analysis and returns struct
+func AnalyzeDependenciesRaw(repoPath string) (*DependencyAnalysisResult, error) {
 	composerJSON, err := composer.ReadComposerJSON(repoPath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	lock, err := composer.ReadComposerLock(repoPath)
@@ -54,7 +54,7 @@ func AnalyzeDependencies(repoPath string) (string, error) {
 		tree = buildDependencyTree(lock)
 	}
 
-	result := DependencyAnalysisResult{
+	result := &DependencyAnalysisResult{
 		Production:  production,
 		Development: development,
 		Tree:        tree,
@@ -64,6 +64,16 @@ func AnalyzeDependencies(repoPath string) (string, error) {
 			Outdated:         0,
 			UpToDate:         0,
 		},
+	}
+
+	return result, nil
+}
+
+// AnalyzeDependencies performs comprehensive dependency analysis (returns JSON string)
+func AnalyzeDependencies(repoPath string) (string, error) {
+	result, err := AnalyzeDependenciesRaw(repoPath)
+	if err != nil {
+		return "", err
 	}
 
 	jsonData, err := json.MarshalIndent(result, "", "  ")

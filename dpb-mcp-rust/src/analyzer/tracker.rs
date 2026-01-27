@@ -83,7 +83,7 @@ pub struct DependencyHistory {
 
 /// Create a snapshot of current dependencies
 pub fn create_dependency_snapshot(repo_path: &str) -> Result<DependencySnapshot> {
-    let deps = super::analyze_dependencies(repo_path)?;
+    let deps = super::dependency::analyze_dependencies_raw(repo_path)?;
     let now = Utc::now().to_rfc3339();
     
     // Load existing tracker to preserve timestamps
@@ -113,7 +113,7 @@ pub fn create_dependency_snapshot(repo_path: &str) -> Result<DependencySnapshot>
         tracked.push(TrackedDependency {
             name: pkg.name.clone(),
             version: pkg.version.clone(),
-            dep_type: pkg.dep_type.clone().unwrap_or_else(|| "production".to_string()),
+            dep_type: pkg.node_type.clone(),
             added_at: Some(added_at),
             updated_at: Some(updated_at),
             license: pkg.license.clone(),

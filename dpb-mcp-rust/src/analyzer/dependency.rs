@@ -27,7 +27,8 @@ pub struct DependencyStats {
     pub up_to_date: usize,
 }
 
-pub fn analyze_dependencies<P: AsRef<Path>>(repo_path: P) -> Result<String> {
+/// Analyze dependencies and return the raw struct
+pub fn analyze_dependencies_raw<P: AsRef<Path>>(repo_path: P) -> Result<DependencyAnalysisResult> {
     let composer_json = read_composer_json(&repo_path)?;
 
     let lock = read_composer_lock(&repo_path).ok();
@@ -45,7 +46,7 @@ pub fn analyze_dependencies<P: AsRef<Path>>(repo_path: P) -> Result<String> {
         Vec::new()
     };
 
-    let result = DependencyAnalysisResult {
+    Ok(DependencyAnalysisResult {
         production: production.clone(),
         development: development.clone(),
         tree,
@@ -55,8 +56,12 @@ pub fn analyze_dependencies<P: AsRef<Path>>(repo_path: P) -> Result<String> {
             outdated: 0,
             up_to_date: 0,
         },
-    };
+    })
+}
 
+/// Analyze dependencies and return JSON string
+pub fn analyze_dependencies<P: AsRef<Path>>(repo_path: P) -> Result<String> {
+    let result = analyze_dependencies_raw(repo_path)?;
     Ok(serde_json::to_string_pretty(&result)?)
 }
 

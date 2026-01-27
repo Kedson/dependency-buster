@@ -72,7 +72,7 @@ type DependencyHistory struct {
 
 // CreateDependencySnapshot creates a new snapshot of all dependencies
 func CreateDependencySnapshot(repoPath string) (*DependencySnapshot, error) {
-	deps, err := AnalyzeDependencies(repoPath)
+	deps, err := AnalyzeDependenciesRaw(repoPath)
 	if err != nil {
 		return nil, err
 	}
