@@ -451,6 +451,111 @@
             transition: width 0.2s ease;
         }
         
+        /* Test History */
+        .test-history {
+            margin-top: var(--space-5);
+            border-top: 1px solid var(--border);
+            padding-top: var(--space-4);
+        }
+        .test-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-3);
+        }
+        .test-history-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--te-orange);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .test-history-clear {
+            font-size: 10px;
+            color: var(--text-secondary);
+            background: none;
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            cursor: pointer;
+        }
+        .test-history-clear:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+        .test-history-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+        .test-history-stat {
+            background: var(--bg-tertiary);
+            padding: var(--space-3);
+            text-align: center;
+        }
+        .test-history-stat-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-1);
+        }
+        .test-history-stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .test-history-stat-value.best { color: var(--success); }
+        .test-history-stat-value.worst { color: var(--error); }
+        .test-history-stat-value.avg { color: var(--te-orange); }
+        .test-history-runs {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .test-history-run {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 11px;
+        }
+        .test-history-run:last-child { border-bottom: none; }
+        .test-history-run-time {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+        }
+        .test-history-run-result {
+            display: flex;
+            gap: var(--space-3);
+        }
+        .test-history-run-pass { color: var(--success); }
+        .test-history-run-fail { color: var(--error); }
+        .test-history-run-duration {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--te-orange);
+        }
+        .stability-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-top: var(--space-3);
+            padding: var(--space-3);
+            background: var(--bg-tertiary);
+            font-size: 11px;
+        }
+        .stability-bar {
+            flex: 1;
+            height: 4px;
+            background: var(--border);
+            position: relative;
+        }
+        .stability-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .stability-fill.excellent { background: var(--success); }
+        .stability-fill.good { background: var(--te-orange); }
+        .stability-fill.poor { background: var(--error); }
+        
         /* Tabs - HTMX powered */
         .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: var(--space-5); }
         .tab {
@@ -1451,8 +1556,130 @@
         }
         
         // ══════════════════════════════════════════════════════════════════
-        // Smoke Tests - Test MCP servers
+        // Smoke Tests - Test MCP servers with history tracking
         // ══════════════════════════════════════════════════════════════════
+        
+        // Test history storage
+        const TEST_HISTORY_KEY = 'dpb-smoke-test-history';
+        
+        function getTestHistory() {
+            try {
+                const data = localStorage.getItem(TEST_HISTORY_KEY);
+                return data ? JSON.parse(data) : { runs: [], implementations: {} };
+            } catch (e) {
+                return { runs: [], implementations: {} };
+            }
+        }
+        
+        function saveTestHistory(history) {
+            try {
+                // Keep only last 50 runs
+                if (history.runs.length > 50) {
+                    history.runs = history.runs.slice(-50);
+                }
+                localStorage.setItem(TEST_HISTORY_KEY, JSON.stringify(history));
+            } catch (e) {
+                console.warn('Could not save test history:', e);
+            }
+        }
+        
+        function clearTestHistory() {
+            localStorage.removeItem(TEST_HISTORY_KEY);
+            const historySection = document.getElementById('test-history-section');
+            if (historySection) {
+                historySection.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: var(--space-4);">No test history yet. Run smoke tests to start tracking.</div>';
+            }
+        }
+        
+        function calculateStability(history, implName) {
+            const implData = history.implementations[implName];
+            if (!implData || implData.durations.length < 2) return null;
+            
+            const durations = implData.durations;
+            const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+            const variance = durations.reduce((sum, d) => sum + Math.pow(d - avg, 2), 0) / durations.length;
+            const stdDev = Math.sqrt(variance);
+            const coeffVar = (stdDev / avg) * 100; // Coefficient of variation %
+            
+            // Lower CV = more stable
+            // <10% = excellent, 10-25% = good, >25% = poor
+            return {
+                avg: Math.round(avg),
+                min: Math.min(...durations),
+                max: Math.max(...durations),
+                stdDev: Math.round(stdDev),
+                coeffVar: Math.round(coeffVar),
+                rating: coeffVar < 10 ? 'excellent' : coeffVar < 25 ? 'good' : 'poor',
+                samples: durations.length
+            };
+        }
+        
+        function renderTestHistory(history) {
+            const section = document.getElementById('test-history-section');
+            if (!section) return;
+            
+            if (history.runs.length === 0) {
+                section.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: var(--space-4);">No test history yet. Run smoke tests to start tracking.</div>';
+                return;
+            }
+            
+            // Calculate stats per implementation
+            const implStats = {};
+            ['TypeScript', 'Go', 'Rust'].forEach(impl => {
+                implStats[impl] = calculateStability(history, impl);
+            });
+            
+            section.innerHTML = `
+                <div class="test-history-header">
+                    <span class="test-history-title">Test History (${history.runs.length} runs)</span>
+                    <button class="test-history-clear" onclick="Dashboard.clearTestHistory()">Clear History</button>
+                </div>
+                
+                <div class="test-history-stats">
+                    ${['TypeScript', 'Go', 'Rust'].map(impl => {
+                        const stats = implStats[impl];
+                        if (!stats) return `
+                            <div class="test-history-stat">
+                                <div class="test-history-stat-label">${impl}</div>
+                                <div class="test-history-stat-value">--</div>
+                            </div>
+                        `;
+                        return `
+                            <div class="test-history-stat">
+                                <div class="test-history-stat-label">${impl} (${stats.samples} runs)</div>
+                                <div class="test-history-stat-value avg">${stats.avg}ms avg</div>
+                                <div style="font-size: 9px; color: var(--text-secondary); margin-top: 4px;">
+                                    min: <span class="test-history-stat-value best" style="font-size: 10px;">${stats.min}ms</span> • 
+                                    max: <span class="test-history-stat-value worst" style="font-size: 10px;">${stats.max}ms</span>
+                                </div>
+                                <div class="stability-indicator">
+                                    <span>Stability:</span>
+                                    <div class="stability-bar">
+                                        <div class="stability-fill ${stats.rating}" style="width: ${100 - Math.min(stats.coeffVar, 100)}%"></div>
+                                    </div>
+                                    <span style="color: var(--${stats.rating === 'excellent' ? 'success' : stats.rating === 'good' ? 'te-orange' : 'error'});">
+                                        ${stats.rating} (±${stats.coeffVar}%)
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div class="test-history-runs">
+                    ${history.runs.slice().reverse().map(run => `
+                        <div class="test-history-run">
+                            <span class="test-history-run-time">${new Date(run.timestamp).toLocaleString()}</span>
+                            <div class="test-history-run-result">
+                                <span class="test-history-run-pass">✓ ${run.passed}</span>
+                                <span class="test-history-run-fail">✗ ${run.failed}</span>
+                                <span class="test-history-run-duration">${run.duration}ms</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
         
         function runSmokeTests() {
             const btn = document.getElementById('run-smoke-test');
@@ -1472,10 +1699,15 @@
                             <button class="test-modal-close" onclick="Dashboard.closeTestModal()">×</button>
                         </div>
                         <div id="test-results"></div>
+                        <div class="test-history" id="test-history-section"></div>
                     </div>
                 `;
                 document.body.appendChild(modal);
             }
+            
+            // Load and render existing history
+            const history = getTestHistory();
+            renderTestHistory(history);
             
             const resultsContainer = document.getElementById('test-results');
             resultsContainer.innerHTML = '';
@@ -1684,7 +1916,48 @@
                         
                         // All tests complete
                         if (testCount === totalTests) {
+                            const totalDuration = Date.now() - startTime;
                             const allPassed = failCount === 0;
+                            
+                            // Record to history
+                            const history = getTestHistory();
+                            const runRecord = {
+                                timestamp: new Date().toISOString(),
+                                passed: passCount,
+                                failed: failCount,
+                                duration: totalDuration,
+                                implementations: {}
+                            };
+                            
+                            // Calculate per-implementation total execution time
+                            implementations.forEach(impl => {
+                                const implData = benchmarkResults && benchmarkResults[impl.name];
+                                if (implData) {
+                                    const toolTimes = tools
+                                        .filter(t => t.benchmarked && implData[t.name])
+                                        .map(t => implData[t.name]);
+                                    const totalTime = toolTimes.reduce((a, b) => a + b, 0);
+                                    
+                                    runRecord.implementations[impl.name] = totalTime;
+                                    
+                                    // Track implementation stats
+                                    if (!history.implementations[impl.name]) {
+                                        history.implementations[impl.name] = { durations: [] };
+                                    }
+                                    history.implementations[impl.name].durations.push(totalTime);
+                                    
+                                    // Keep only last 20 durations per implementation
+                                    if (history.implementations[impl.name].durations.length > 20) {
+                                        history.implementations[impl.name].durations = 
+                                            history.implementations[impl.name].durations.slice(-20);
+                                    }
+                                }
+                            });
+                            
+                            history.runs.push(runRecord);
+                            saveTestHistory(history);
+                            renderTestHistory(history);
+                            
                             btn.classList.remove('running');
                             btn.classList.add(allPassed ? 'success' : 'error');
                             btn.disabled = false;
@@ -1711,7 +1984,7 @@
         }
         
         // Public API
-        return { init, showTab, showOutput, runSmokeTests, closeTestModal };
+        return { init, showTab, showOutput, runSmokeTests, closeTestModal, clearTestHistory };
     })();
     
     // Run on DOM ready
