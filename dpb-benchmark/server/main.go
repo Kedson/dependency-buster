@@ -24,7 +24,7 @@ func main() {
 
 	// Create file server
 	fs := http.FileServer(http.Dir(dashboardDir))
-	http.Handle("/", logRequest(fs))
+	http.Handle("/", fs)
 
 	addr := fmt.Sprintf(":%d", *port)
 	url := fmt.Sprintf("http://localhost%s", addr)
@@ -82,13 +82,6 @@ func findDashboardDir() string {
 	}
 
 	return ""
-}
-
-func logRequest(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("  %s %s\n", r.Method, r.URL.Path)
-		next.ServeHTTP(w, r)
-	})
 }
 
 func openBrowser(url string) {
