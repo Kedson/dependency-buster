@@ -126,15 +126,31 @@ dependency-buster works with any MCP-compatible IDE or tool:
 
 ---
 
-## 🛠️ Available Tools
+## 🛠️ Available Tools (14 Total)
 
-| Tool | Description |
-|------|-------------|
-| `analyze_dependencies` | Comprehensive dependency analysis with tree visualization |
-| `audit_security` | Security vulnerability scanning |
-| `analyze_licenses` | License compliance checking |
-| `detect_namespaces` | Namespace and module structure detection |
-| `analyze_psr4` | PSR-4 autoloading analysis (PHP) |
+### Core Analysis Tools
+
+| # | Tool | Description |
+|---|------|-------------|
+| 1 | `analyze_dependencies` | Comprehensive dependency analysis with production/dev breakdown and tree visualization |
+| 2 | `analyze_psr4` | PSR-4 autoloading analysis and namespace compliance validation |
+| 3 | `detect_namespaces` | Detect all namespaces and module structure in the codebase |
+| 4 | `analyze_namespace_usage` | Analyze usage of a specific namespace across the codebase |
+| 5 | `generate_dependency_graph` | Generate Mermaid diagram of dependency relationships |
+| 6 | `audit_security` | Audit dependencies for security vulnerabilities and outdated packages |
+| 7 | `analyze_licenses` | Analyze license distribution and compatibility across dependencies |
+| 8 | `find_circular_dependencies` | Find circular dependency chains in the package graph |
+| 9 | `analyze_multi_repo` | Analyze dependencies across multiple repositories |
+| 10 | `generate_comprehensive_docs` | Generate comprehensive markdown documentation for a repository |
+
+### Tracking & AI Agent Tools
+
+| # | Tool | Description |
+|---|------|-------------|
+| 11 | `track_dependencies` | Create timestamped snapshot of dependencies for tracking changes over time |
+| 12 | `get_dependency_history` | Get dependency history with timestamps, recently added/updated, and stale packages |
+| 13 | `check_compliance` | Check dependencies for compliance issues (licenses, outdated, deprecated) |
+| 14 | `get_agent_suggestions` | Get structured suggestions for AI agents (Cursor, Cline, Claude Code) about dependency issues |
 
 ### MCP Tool Annotations
 
