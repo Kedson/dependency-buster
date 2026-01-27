@@ -192,7 +192,7 @@ Analyze dependencies in /path/to/php/project and check PSR-4 compliance
 ### Multi-Repository Analysis
 
 ```
-Using config/faith-fm-repos.json, analyze all repositories and find version conflicts
+Using config/example-repos.json, analyze all repositories and find version conflicts
 ```
 
 ### Security Audit
@@ -201,14 +201,14 @@ Using config/faith-fm-repos.json, analyze all repositories and find version conf
 Run security audit on /path/to/project and generate a report
 ```
 
-## 🚀 Faith FM Integration
+## 🚀 Dependency Buster Integration
 
 ```bash
 # Copy config template
-cp config/faith-fm-repos.example.json config/faith-fm-repos.json
+cp config/example-repos.example.json config/example-repos.json
 
 # Edit paths
-nano config/faith-fm-repos.json
+nano config/example-repos.json
 
 # Analyze
 claude .
@@ -216,7 +216,7 @@ claude .
 
 Then ask:
 ```
-Analyze all Faith FM repositories and identify version conflicts that need resolution
+Analyze all Dependency Buster repositories and identify version conflicts that need resolution
 ```
 
 ## 🐳 Docker (Optional)

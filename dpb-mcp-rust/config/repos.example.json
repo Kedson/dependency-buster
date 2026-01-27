@@ -4,14 +4,14 @@
     "path": "/path/to/faith-fm/core",
     "type": "application",
     "team": "Platform Engineering",
-    "description": "Main Faith FM radio streaming application"
+    "description": "Main Dependency Buster radio streaming application"
   },
   {
     "name": "faith-fm-api",
     "path": "/path/to/faith-fm/api",
     "type": "service",
     "team": "Platform Engineering",
-    "description": "REST API for Faith FM services"
+    "description": "REST API for Dependency Buster services"
   },
   {
     "name": "faith-fm-cms",

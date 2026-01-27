@@ -139,6 +139,6 @@ cargo run
 - Compare with TypeScript and Go versions
 - Run benchmarks on large projects
 - Try multi-repo analysis
-- Test with your Faith FM repos
+- Test with your Dependency Buster repos
 
 Enjoy the speed! 🦀⚡

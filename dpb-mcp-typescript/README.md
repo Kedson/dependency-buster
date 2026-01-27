@@ -136,7 +136,7 @@ Use php-analyzer to:
 
 ### Multi-Repository Analysis
 
-1. Create a config file (see `config/faith-fm-repos.example.json`):
+1. Create a config file (see `config/example-repos.example.json`):
 
 ```json
 [
@@ -366,16 +366,16 @@ claude mcp list
 - On Windows, use forward slashes or escaped backslashes
 - Ensure the path contains a valid `composer.json`
 
-## Faith FM Platform Integration
+## Dependency Buster Platform Integration
 
-For multi-repository analysis across the Faith FM platform:
+For multi-repository analysis across the Dependency Buster platform:
 
-1. Copy `config/faith-fm-repos.example.json` to `config/faith-fm-repos.json`
+1. Copy `config/example-repos.example.json` to `config/example-repos.json`
 2. Update paths to match your local setup
 3. Run multi-repo analysis:
 
 ```
-Analyze the Faith FM platform using config/faith-fm-repos.json:
+Analyze the Dependency Buster platform using config/example-repos.json:
 - Find all shared dependencies
 - Identify version conflicts that need resolution
 - Recommend a dependency consolidation strategy
@@ -391,7 +391,7 @@ Contributions welcome! Please feel free to submit a Pull Request.
 
 ## Author
 
-Faith FM Platform Engineering Team
+Dependency Buster Contributors Team
 
 ## Version
 

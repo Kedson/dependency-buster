@@ -204,7 +204,7 @@ func registerTools(server *mcp.Server) {
 	// Tool 9: Analyze Multi Repo
 	server.RegisterTool(mcp.Tool{
 		Name:        "analyze_multi_repo",
-		Description: "Analyze dependencies across multiple repositories (Faith FM platform)",
+		Description: "Analyze dependencies across multiple repositories (Dependency Buster platform)",
 		InputSchema: mcp.InputSchema{
 			Type: "object",
 			Properties: map[string]mcp.Property{

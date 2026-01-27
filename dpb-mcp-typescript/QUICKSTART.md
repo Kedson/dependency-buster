@@ -73,19 +73,19 @@ Use php-dependency-analyzer to:
 4. Generate documentation in DEPENDENCIES.md
 ```
 
-## 5. Multi-Repo Analysis (Faith FM)
+## 5. Multi-Repo Analysis (Dependency Buster)
 
 ```bash
 # Copy config template
-cp config/faith-fm-repos.example.json config/faith-fm-repos.json
+cp config/example-repos.example.json config/example-repos.json
 
 # Edit paths
-nano config/faith-fm-repos.json
+nano config/example-repos.json
 ```
 
 Then ask:
 ```
-Analyze all repositories in config/faith-fm-repos.json:
+Analyze all repositories in config/example-repos.json:
 - Find shared dependencies
 - Identify version conflicts
 - Generate consolidated report
@@ -153,7 +153,7 @@ claude mcp add php-analyzer --scope user -- dpb-mcp
 
 - Read full [README.md](README.md) for all features
 - Check `examples/` folder for more usage patterns
-- Configure Faith FM multi-repo analysis
+- Configure Dependency Buster multi-repo analysis
 - Integrate with CI/CD for automated audits
 
 ## Support

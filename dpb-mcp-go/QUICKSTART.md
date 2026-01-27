@@ -120,7 +120,7 @@ chmod +x build/dpb-mcp
 
 - Compare with TypeScript version
 - Try multi-repo analysis
-- Test with your Faith FM repos
+- Test with your Dependency Buster repos
 - Wait for Rust version! 🦀
 
 Enjoy the speed! 🚀

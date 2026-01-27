@@ -20,7 +20,7 @@
     "psr-4",
     "analysis"
   ],
-  "author": "Faith FM Platform Engineering",
+  "author": "Dependency Buster Contributors",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

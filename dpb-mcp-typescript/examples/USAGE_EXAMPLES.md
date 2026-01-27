@@ -75,7 +75,7 @@ Expected output:
 
 Ask:
 ```
-Analyze all Faith FM repositories using config/faith-fm-repos.json:
+Analyze all Dependency Buster repositories using config/example-repos.json:
 - What dependencies are shared across services?
 - Are there version conflicts?
 - Generate a consolidated report
@@ -125,10 +125,10 @@ Summarize any critical issues found.
 
 This will use multiple tools and provide a comprehensive analysis.
 
-## Faith FM Platform Example
+## Dependency Buster Platform Example
 
 ```
-I need to prepare for the Faith FM platform rebuild. Using config/faith-fm-repos.json:
+I need to prepare for the Dependency Buster platform rebuild. Using config/example-repos.json:
 
 1. Analyze dependencies across all services
 2. Identify shared dependencies

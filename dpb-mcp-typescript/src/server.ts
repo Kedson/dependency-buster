@@ -185,7 +185,7 @@ const enhancedTools: EnhancedTool[] = [
   },
   {
     name: 'analyze_multi_repo',
-    description: 'Analyze dependencies across multiple repositories (Faith FM platform)',
+    description: 'Analyze dependencies across multiple repositories (Dependency Buster platform)',
     inputSchema: {
       type: 'object',
       properties: { config_path: { type: 'string', description: 'Path to repository configuration JSON file' } },

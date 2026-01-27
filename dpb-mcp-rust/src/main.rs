@@ -222,7 +222,7 @@ async fn register_tools(server: &Server) {
         .register_tool(
             Tool {
                 name: "analyze_multi_repo".to_string(),
-                description: "Analyze dependencies across multiple repositories (Faith FM platform)".to_string(),
+                description: "Analyze dependencies across multiple repositories (Dependency Buster platform)".to_string(),
                 input_schema: InputSchema {
                     schema_type: "object".to_string(),
                     properties: HashMap::from([
