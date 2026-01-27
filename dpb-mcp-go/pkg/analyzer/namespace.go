@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/faithfm/php-dependency-mcp/pkg/types"
+	"github.com/kedson/dpb-mcp/pkg/types"
 )
 
 var (

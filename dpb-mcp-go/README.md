@@ -31,7 +31,7 @@ All the same great features as the TypeScript version:
 
 ```bash
 # Clone or extract
-cd php-dependency-mcp-go
+cd dpb-mcp-go
 
 # Download dependencies
 make deps
@@ -52,10 +52,10 @@ Download for your platform:
 
 ```bash
 # Make executable
-chmod +x php-dependency-mcp-*
+chmod +x dpb-mcp-*
 
 # Move to PATH
-mv php-dependency-mcp-* /usr/local/bin/php-dependency-mcp
+mv dpb-mcp-* /usr/local/bin/dpb-mcp
 ```
 
 ## ⚙️ Configuration
@@ -63,7 +63,7 @@ mv php-dependency-mcp-* /usr/local/bin/php-dependency-mcp
 ### For Claude Code
 
 ```bash
-claude mcp add php-analyzer --scope user -- php-dependency-mcp
+claude mcp add php-analyzer --scope user -- dpb-mcp
 ```
 
 ### For Cursor
@@ -73,7 +73,7 @@ Create `.cursor/mcp.json`:
 {
   "mcpServers": {
     "php-analyzer": {
-      "command": "php-dependency-mcp"
+      "command": "dpb-mcp"
     }
   }
 }
@@ -134,7 +134,7 @@ Tested on AzuraCast (medium PHP project):
 ### Project Structure
 
 ```
-php-dependency-mcp-go/
+dpb-mcp-go/
 ├── cmd/
 │   └── server/
 │       └── main.go           # Main application
@@ -164,7 +164,7 @@ php-dependency-mcp-go/
 make run
 
 # Test manually
-echo '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}' | ./build/php-dependency-mcp
+echo '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}' | ./build/dpb-mcp
 ```
 
 ## 🔧 Available Tools
@@ -225,11 +225,11 @@ Analyze all Faith FM repositories and identify version conflicts that need resol
 FROM golang:1.22-alpine AS builder
 WORKDIR /app
 COPY . .
-RUN go build -ldflags="-s -w" -o php-dependency-mcp ./cmd/server
+RUN go build -ldflags="-s -w" -o dpb-mcp ./cmd/server
 
 FROM alpine:latest
-COPY --from=builder /app/php-dependency-mcp /usr/local/bin/
-ENTRYPOINT ["php-dependency-mcp"]
+COPY --from=builder /app/dpb-mcp /usr/local/bin/
+ENTRYPOINT ["dpb-mcp"]
 ```
 
 ## 🤝 Contributing

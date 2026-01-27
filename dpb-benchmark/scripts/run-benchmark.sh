@@ -177,8 +177,8 @@ echo ""
 
 # Binary paths
 TS_SERVER="$WORKSPACE_DIR/dpb-mcp-typescript/build/server.js"
-GO_BINARY="$WORKSPACE_DIR/dpb-mcp-go/build/php-dependency-mcp"
-RUST_BINARY="$WORKSPACE_DIR/dpb-mcp-rust/target/release/php-dependency-mcp"
+GO_BINARY="$WORKSPACE_DIR/dpb-mcp-go/build/dpb-mcp"
+RUST_BINARY="$WORKSPACE_DIR/dpb-mcp-rust/target/release/dpb-mcp"
 
 # Analysis tools to run
 declare -a TOOLS=("analyze_dependencies" "analyze_psr4" "detect_namespaces" "audit_security" "analyze_licenses")

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/faithfm/php-dependency-mcp/pkg/composer"
-	"github.com/faithfm/php-dependency-mcp/pkg/types"
+	"github.com/kedson/dpb-mcp/pkg/composer"
+	"github.com/kedson/dpb-mcp/pkg/types"
 	"golang.org/x/sync/errgroup"
 )
 

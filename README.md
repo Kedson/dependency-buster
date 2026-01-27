@@ -105,7 +105,7 @@ dependency-buster works with any MCP-compatible IDE or tool:
 ```json
 {
   "dependency-buster": {
-    "command": "/path/to/dpb-mcp-go/build/php-dependency-mcp"
+    "command": "/path/to/dpb-mcp-go/build/dpb-mcp"
   }
 }
 ```
@@ -116,7 +116,7 @@ dependency-buster works with any MCP-compatible IDE or tool:
 {
   "mcpServers": {
     "dependency-buster": {
-      "command": "/path/to/dpb-mcp-rust/target/release/php-dependency-mcp"
+      "command": "/path/to/dpb-mcp-rust/target/release/dpb-mcp"
     }
   }
 }
@@ -208,7 +208,7 @@ export MCP_TRANSPORT=http
 export MCP_HTTP_PORT=3000
 
 # Run server
-./build/php-dependency-mcp
+./build/dpb-mcp
 ```
 
 ---

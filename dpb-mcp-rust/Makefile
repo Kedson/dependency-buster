@@ -10,20 +10,20 @@ release:
 	@echo "Building release version with optimizations..."
 	cargo build --release
 	@echo "Binary size:"
-	@ls -lh target/release/php-dependency-mcp
+	@ls -lh target/release/dpb-mcp
 
 # Super optimized build
 release-small:
 	@echo "Building super-optimized version..."
 	cargo build --profile release-small
-	strip target/release-small/php-dependency-mcp 2>/dev/null || true
+	strip target/release-small/dpb-mcp 2>/dev/null || true
 	@echo "Binary size:"
-	@ls -lh target/release-small/php-dependency-mcp
+	@ls -lh target/release-small/dpb-mcp
 
 # Install to system
 install: release
 	@echo "Installing to /usr/local/bin..."
-	@sudo cp target/release/php-dependency-mcp /usr/local/bin/
+	@sudo cp target/release/dpb-mcp /usr/local/bin/
 	@echo "Installed successfully!"
 
 # Clean build artifacts
@@ -58,7 +58,7 @@ lint:
 # Show binary sizes
 size: release
 	@echo "\nRelease binary analysis:"
-	@size target/release/php-dependency-mcp 2>/dev/null || ls -lh target/release/php-dependency-mcp
+	@size target/release/dpb-mcp 2>/dev/null || ls -lh target/release/dpb-mcp
 
 # Cross-compile for different platforms
 cross-linux:

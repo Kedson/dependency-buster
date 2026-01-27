@@ -177,8 +177,8 @@ if [ -d "dpb-mcp-go" ]; then
     go mod tidy 2>&1 || true
     echo -e "${BLUE}🏗️  Building Go binary...${NC}"
     if make build 2>&1; then
-        if [ -f "build/php-dependency-mcp" ]; then
-            SIZE=$(du -sh build/php-dependency-mcp | cut -f1)
+        if [ -f "build/dpb-mcp" ]; then
+            SIZE=$(du -sh build/dpb-mcp | cut -f1)
             echo -e "${GREEN}✓${NC} Go build complete (binary: $SIZE)"
         else
             echo -e "${RED}✗${NC} Go build failed - binary not created"
@@ -202,8 +202,8 @@ if [ -d "dpb-mcp-rust" ]; then
     cd dpb-mcp-rust
     echo -e "${BLUE}🏗️  Building Rust binary (optimized - this may take a while)...${NC}"
     if cargo build --release 2>&1; then
-        if [ -f "target/release/php-dependency-mcp" ]; then
-            SIZE=$(du -sh target/release/php-dependency-mcp | cut -f1)
+        if [ -f "target/release/dpb-mcp" ]; then
+            SIZE=$(du -sh target/release/dpb-mcp | cut -f1)
             echo -e "${GREEN}✓${NC} Rust build complete (binary: $SIZE)"
         else
             echo -e "${RED}✗${NC} Rust build failed - binary not created"
@@ -256,9 +256,9 @@ if [ -f "dpb-mcp-typescript/build/server.js" ]; then
 fi
 
 # Test Go
-if [ -f "dpb-mcp-go/build/php-dependency-mcp" ]; then
+if [ -f "dpb-mcp-go/build/dpb-mcp" ]; then
     echo -e "${BLUE}Testing Go...${NC}"
-    if echo "$TEST_JSON" | dpb-mcp-go/build/php-dependency-mcp > /dev/null 2>&1; then
+    if echo "$TEST_JSON" | dpb-mcp-go/build/dpb-mcp > /dev/null 2>&1; then
         echo -e "${GREEN}✓${NC} Go: Working"
     else
         echo -e "${RED}✗${NC} Go: Failed"
@@ -266,9 +266,9 @@ if [ -f "dpb-mcp-go/build/php-dependency-mcp" ]; then
 fi
 
 # Test Rust
-if [ -f "dpb-mcp-rust/target/release/php-dependency-mcp" ]; then
+if [ -f "dpb-mcp-rust/target/release/dpb-mcp" ]; then
     echo -e "${BLUE}Testing Rust...${NC}"
-    if echo "$TEST_JSON" | dpb-mcp-rust/target/release/php-dependency-mcp > /dev/null 2>&1; then
+    if echo "$TEST_JSON" | dpb-mcp-rust/target/release/dpb-mcp > /dev/null 2>&1; then
         echo -e "${GREEN}✓${NC} Rust: Working"
     else
         echo -e "${RED}✗${NC} Rust: Failed"
@@ -291,8 +291,8 @@ GO_STATUS="${RED}✗ Not built${NC}"
 RUST_STATUS="${RED}✗ Not built${NC}"
 
 [ -f "dpb-mcp-typescript/build/server.js" ] && TS_STATUS="${GREEN}✓ Ready${NC}"
-[ -f "dpb-mcp-go/build/php-dependency-mcp" ] && GO_STATUS="${GREEN}✓ Ready${NC}"
-[ -f "dpb-mcp-rust/target/release/php-dependency-mcp" ] && RUST_STATUS="${GREEN}✓ Ready${NC}"
+[ -f "dpb-mcp-go/build/dpb-mcp" ] && GO_STATUS="${GREEN}✓ Ready${NC}"
+[ -f "dpb-mcp-rust/target/release/dpb-mcp" ] && RUST_STATUS="${GREEN}✓ Ready${NC}"
 
 echo -e "  TypeScript: $TS_STATUS"
 echo -e "  Go:         $GO_STATUS"

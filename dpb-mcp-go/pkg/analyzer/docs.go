@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/faithfm/php-dependency-mcp/pkg/composer"
+	"github.com/kedson/dpb-mcp/pkg/composer"
 )
 
 // GenerateComprehensiveDocs generates comprehensive markdown documentation

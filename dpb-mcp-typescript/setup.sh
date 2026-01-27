@@ -50,11 +50,11 @@ fi
 
 # Offer to install globally
 echo ""
-read -p "Install globally? This allows you to run 'php-dependency-mcp' from anywhere (y/N): " -n 1 -r
+read -p "Install globally? This allows you to run 'dpb-mcp' from anywhere (y/N): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     npm install -g .
-    echo "✓ Installed globally as 'php-dependency-mcp'"
+    echo "✓ Installed globally as 'dpb-mcp'"
 else
     npm link
     echo "✓ Linked locally (use 'npm unlink' to remove)"
@@ -83,7 +83,7 @@ if [ "$CLAUDE_CODE_INSTALLED" = true ]; then
     read -p "Configure Claude Code? (y/N): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        claude mcp add php-analyzer --scope user -- php-dependency-mcp
+        claude mcp add php-analyzer --scope user -- dpb-mcp
         echo "✓ Claude Code configured"
     fi
 fi
@@ -99,7 +99,7 @@ if [ "$CURSOR_INSTALLED" = true ]; then
     echo '   {'
     echo '     "mcpServers": {'
     echo '       "php-analyzer": {'
-    echo '         "command": "php-dependency-mcp"'
+    echo '         "command": "dpb-mcp"'
     echo '       }'
     echo '     }'
     echo '   }'

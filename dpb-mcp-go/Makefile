@@ -1,7 +1,7 @@
 .PHONY: build clean install test run
 
 # Binary name
-BINARY_NAME=php-dependency-mcp
+BINARY_NAME=dpb-mcp
 BUILD_DIR=build
 
 # Build for current platform

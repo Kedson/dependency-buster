@@ -8,7 +8,7 @@ echo ""
 
 # Check if we're in the right directory
 if [ ! -f "README.md" ]; then
-    echo "❌ Error: Please run this script from the php-mcp-benchmark directory"
+    echo "❌ Error: Please run this script from the dpb-benchmark directory"
     exit 1
 fi
 
@@ -40,9 +40,9 @@ echo "✅ Setup complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Build all three implementations:"
-echo "     - TypeScript: cd php-dependency-mcp-complete && npm install && npm run build"
-echo "     - Go:         cd php-dependency-mcp-go && make build"
-echo "     - Rust:       cd php-dependency-mcp-rust && cargo build --release"
+echo "     - TypeScript: cd dpb-mcp-complete && npm install && npm run build"
+echo "     - Go:         cd dpb-mcp-go && make build"
+echo "     - Rust:       cd dpb-mcp-rust && cargo build --release"
 echo ""
 echo "  2. Run benchmark:"
 echo "     ./scripts/run-benchmark.sh"

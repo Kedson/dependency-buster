@@ -67,10 +67,10 @@ cargo build --release
 echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | node build/server.js
 
 # Go
-echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | ./build/php-dependency-mcp
+echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | ./build/dpb-mcp
 
 # Rust
-echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | ./target/release/php-dependency-mcp
+echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | ./target/release/dpb-mcp
 ```
 
 ---
@@ -105,7 +105,7 @@ Add to your Cursor MCP configuration file:
 {
   "mcpServers": {
     "dependency-buster": {
-      "command": "/path/to/dpb-mcp-workspace/dpb-mcp-go/build/php-dependency-mcp",
+      "command": "/path/to/dpb-mcp-workspace/dpb-mcp-go/build/dpb-mcp",
       "env": {}
     }
   }
@@ -118,7 +118,7 @@ Add to your Cursor MCP configuration file:
 {
   "mcpServers": {
     "dependency-buster": {
-      "command": "/path/to/dpb-mcp-workspace/dpb-mcp-rust/target/release/php-dependency-mcp",
+      "command": "/path/to/dpb-mcp-workspace/dpb-mcp-rust/target/release/dpb-mcp",
       "env": {}
     }
   }
@@ -336,7 +336,7 @@ All tools include MCP annotations:
 MCP_TRANSPORT=http MCP_HTTP_PORT=3000 node build/server.js
 
 # Or with Go
-MCP_TRANSPORT=http MCP_HTTP_PORT=3000 ./build/php-dependency-mcp
+MCP_TRANSPORT=http MCP_HTTP_PORT=3000 ./build/dpb-mcp
 ```
 
 ### Authentication
@@ -377,8 +377,8 @@ chmod +x /path/to/binary
 
 ```bash
 # Make binary executable
-chmod +x ./build/php-dependency-mcp
-chmod +x ./target/release/php-dependency-mcp
+chmod +x ./build/dpb-mcp
+chmod +x ./target/release/dpb-mcp
 ```
 
 ### JSON Parse Errors
@@ -407,7 +407,7 @@ echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"analyze_dependenc
 
 ```bash
 # Run the full benchmark suite
-cd dpb-mcp-workspace/php-mcp-benchmark
+cd dpb-mcp-workspace/dpb-benchmark
 ./scripts/run-benchmark.sh /path/to/your/project
 
 # Open the dashboard

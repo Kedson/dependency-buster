@@ -16,8 +16,8 @@ go version
 
 ```bash
 # Extract
-unzip php-dependency-mcp-go.zip
-cd php-dependency-mcp-go
+unzip dpb-mcp-go.zip
+cd dpb-mcp-go
 
 # Download dependencies
 go mod download
@@ -25,7 +25,7 @@ go mod download
 # Build
 make build
 # OR without Make:
-go build -o build/php-dependency-mcp ./cmd/server
+go build -o build/dpb-mcp ./cmd/server
 ```
 
 ## 2. Install (Optional)
@@ -34,14 +34,14 @@ go build -o build/php-dependency-mcp ./cmd/server
 # Install to system PATH
 make install
 # OR manually:
-sudo cp build/php-dependency-mcp /usr/local/bin/
+sudo cp build/dpb-mcp /usr/local/bin/
 ```
 
 ## 3. Configure MCP Client
 
 ### Claude Code
 ```bash
-claude mcp add php-analyzer --scope user -- php-dependency-mcp
+claude mcp add php-analyzer --scope user -- dpb-mcp
 ```
 
 ### Cursor
@@ -50,7 +50,7 @@ Add to `.cursor/mcp.json`:
 {
   "mcpServers": {
     "php-analyzer": {
-      "command": "php-dependency-mcp"
+      "command": "dpb-mcp"
     }
   }
 }
@@ -89,10 +89,10 @@ Find them in `build/` directory.
 
 ```bash
 # Check binary size
-ls -lh build/php-dependency-mcp
+ls -lh build/dpb-mcp
 
 # Test startup time
-time echo '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}' | ./build/php-dependency-mcp
+time echo '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}' | ./build/dpb-mcp
 ```
 
 Expected:
@@ -113,7 +113,7 @@ go mod download
 
 ### Permission denied
 ```bash
-chmod +x build/php-dependency-mcp
+chmod +x build/dpb-mcp
 ```
 
 ## Next Steps

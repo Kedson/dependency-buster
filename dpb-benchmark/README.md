@@ -45,22 +45,22 @@ git clone --depth 1 https://github.com/AzuraCast/AzuraCast.git ~/test/azuracast
 
 ```bash
 # TypeScript
-cd php-dependency-mcp-complete
+cd dpb-mcp-complete
 npm install && npm run build
 
 # Go
-cd php-dependency-mcp-go
+cd dpb-mcp-go
 make build
 
 # Rust
-cd php-dependency-mcp-rust
+cd dpb-mcp-rust
 cargo build --release
 ```
 
 ### 3. Run Benchmark
 
 ```bash
-cd php-mcp-benchmark
+cd dpb-benchmark
 chmod +x scripts/run-benchmark.sh
 ./scripts/run-benchmark.sh
 ```
@@ -81,7 +81,7 @@ cat results/benchmark_*.json
 ## 📁 Project Structure
 
 ```
-php-mcp-benchmark/
+dpb-benchmark/
 ├── scripts/
 │   ├── run-benchmark.sh        # Master benchmark script
 │   └── generate-report.py      # Markdown report generator
@@ -231,7 +231,7 @@ node --prof build/server.js
 ```bash
 # Run 100 analyses in parallel
 for i in {1..100}; do
-    (./php-dependency-mcp analyze /path/to/repo &)
+    (./dpb-mcp analyze /path/to/repo &)
 done
 wait
 ```
@@ -253,8 +253,8 @@ wait
 ### "Binary not found"
 ```bash
 # Make sure you've built all implementations
-cd php-dependency-mcp-go && make build
-cd php-dependency-mcp-rust && cargo build --release
+cd dpb-mcp-go && make build
+cd dpb-mcp-rust && cargo build --release
 ```
 
 ### "AzuraCast not found"
@@ -298,9 +298,9 @@ Results are saved as JSON:
 
 ## 📚 Additional Resources
 
-- [TypeScript Implementation](../php-dependency-mcp-complete/)
-- [Go Implementation](../php-dependency-mcp-go/)
-- [Rust Implementation](../php-dependency-mcp-rust/)
+- [TypeScript Implementation](../dpb-mcp-complete/)
+- [Go Implementation](../dpb-mcp-go/)
+- [Rust Implementation](../dpb-mcp-rust/)
 - [MCP Protocol Specification](https://spec.modelcontextprotocol.io/)
 
 ## 🤝 Contributing

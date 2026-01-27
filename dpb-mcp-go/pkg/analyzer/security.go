@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/faithfm/php-dependency-mcp/pkg/composer"
-	"github.com/faithfm/php-dependency-mcp/pkg/types"
+	"github.com/kedson/dpb-mcp/pkg/composer"
+	"github.com/kedson/dpb-mcp/pkg/types"
 )
 
 // SecurityAuditResult represents security audit output

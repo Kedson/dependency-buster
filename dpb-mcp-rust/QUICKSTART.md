@@ -20,8 +20,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ```bash
 # Extract
-unzip php-dependency-mcp-rust.zip
-cd php-dependency-mcp-rust
+unzip dpb-mcp-rust.zip
+cd dpb-mcp-rust
 
 # Build release version (optimized)
 cargo build --release
@@ -30,7 +30,7 @@ make release
 ```
 
 Build time: ~2 minutes (first time), ~10 seconds (subsequent builds)
-Binary location: `target/release/php-dependency-mcp`
+Binary location: `target/release/dpb-mcp`
 
 ## 2. Install (Optional)
 
@@ -40,14 +40,14 @@ make install
 # OR manually:
 cargo install --path .
 # OR copy:
-sudo cp target/release/php-dependency-mcp /usr/local/bin/
+sudo cp target/release/dpb-mcp /usr/local/bin/
 ```
 
 ## 3. Configure MCP Client
 
 ### Claude Code
 ```bash
-claude mcp add php-analyzer --scope user -- php-dependency-mcp
+claude mcp add php-analyzer --scope user -- dpb-mcp
 ```
 
 ### Cursor
@@ -56,7 +56,7 @@ Add to `.cursor/mcp.json`:
 {
   "mcpServers": {
     "php-analyzer": {
-      "command": "php-dependency-mcp"
+      "command": "dpb-mcp"
     }
   }
 }
@@ -91,11 +91,11 @@ make release-small
 
 ```bash
 # Check binary size
-ls -lh target/release/php-dependency-mcp
+ls -lh target/release/dpb-mcp
 
 # Test startup time
 time echo '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}' | \
-  ./target/release/php-dependency-mcp
+  ./target/release/dpb-mcp
 ```
 
 Expected:
@@ -114,7 +114,7 @@ Use `cargo build` for faster dev builds.
 
 ### Permission denied
 ```bash
-chmod +x target/release/php-dependency-mcp
+chmod +x target/release/dpb-mcp
 ```
 
 ### Link errors

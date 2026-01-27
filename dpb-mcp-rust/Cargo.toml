@@ -1,12 +1,12 @@
 [package]
-name = "php-dependency-mcp"
+name = "dpb-mcp"
 version = "1.0.0"
 edition = "2021"
 authors = ["Faith FM Platform Engineering"]
-description = "Blazing-fast PHP dependency analyzer MCP server"
+description = "Blazing-fast universal dependency analyzer MCP server"
 
 [[bin]]
-name = "php-dependency-mcp"
+name = "dpb-mcp"
 path = "src/main.rs"
 
 [dependencies]

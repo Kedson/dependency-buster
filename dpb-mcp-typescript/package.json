@@ -1,10 +1,10 @@
 {
-  "name": "php-dependency-mcp-server",
+  "name": "dpb-mcp-server",
   "version": "1.0.0",
   "description": "MCP server for PHP dependency analysis, PSR-4 validation, and multi-repo management",
   "type": "module",
   "bin": {
-    "php-dependency-mcp": "./build/server.js"
+    "dpb-mcp": "./build/server.js"
   },
   "scripts": {
     "build": "tsc",

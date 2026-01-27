@@ -6,8 +6,8 @@ Get up and running in 5 minutes!
 
 ```bash
 # Extract the zip file
-unzip php-dependency-mcp-complete.zip
-cd php-dependency-mcp-complete
+unzip dpb-mcp-complete.zip
+cd dpb-mcp-complete
 
 # Run setup script (recommended)
 ./setup.sh
@@ -22,7 +22,7 @@ npm link
 
 ### Claude Code
 ```bash
-claude mcp add php-analyzer --scope user -- php-dependency-mcp
+claude mcp add php-analyzer --scope user -- dpb-mcp
 ```
 
 ### Cursor
@@ -31,7 +31,7 @@ Add to `.cursor/mcp.json`:
 {
   "mcpServers": {
     "php-analyzer": {
-      "command": "php-dependency-mcp"
+      "command": "dpb-mcp"
     }
   }
 }
@@ -128,7 +128,7 @@ Generate comprehensive docs and save to DEPENDENCIES.md
 ### Server not found
 ```bash
 # Check installation
-which php-dependency-mcp
+which dpb-mcp
 
 # If not found, try:
 npm link
@@ -146,7 +146,7 @@ claude mcp list
 
 # Re-add server
 claude mcp remove php-analyzer
-claude mcp add php-analyzer --scope user -- php-dependency-mcp
+claude mcp add php-analyzer --scope user -- dpb-mcp
 ```
 
 ## Next Steps

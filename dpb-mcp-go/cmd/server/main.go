@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/faithfm/php-dependency-mcp/pkg/analyzer"
-	"github.com/faithfm/php-dependency-mcp/pkg/mcp"
+	"github.com/kedson/dpb-mcp/pkg/analyzer"
+	"github.com/kedson/dpb-mcp/pkg/mcp"
 )
 
 func main() {

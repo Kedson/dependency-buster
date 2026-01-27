@@ -30,7 +30,7 @@ A comprehensive Model Context Protocol (MCP) server for analyzing PHP projects, 
 
 ```bash
 # Clone or extract the package
-cd php-dependency-mcp-complete
+cd dpb-mcp-complete
 
 # Install dependencies
 npm install
@@ -56,7 +56,7 @@ Add to `~/.claude/mcp.json`:
   "mcpServers": {
     "php-dependency-analyzer": {
       "type": "stdio",
-      "command": "php-dependency-mcp"
+      "command": "dpb-mcp"
     }
   }
 }
@@ -65,7 +65,7 @@ Add to `~/.claude/mcp.json`:
 Or use the CLI:
 
 ```bash
-claude mcp add php-analyzer --scope user -- php-dependency-mcp
+claude mcp add php-analyzer --scope user -- dpb-mcp
 ```
 
 ### For Cursor
@@ -76,7 +76,7 @@ Create `.cursor/mcp.json` in your project root:
 {
   "mcpServers": {
     "php-analyzer": {
-      "command": "php-dependency-mcp"
+      "command": "dpb-mcp"
     }
   }
 }
@@ -95,7 +95,7 @@ Add to VSCode `settings.json`:
 {
   "cline.mcpServers": {
     "php-dependency-analyzer": {
-      "command": "php-dependency-mcp"
+      "command": "dpb-mcp"
     }
   }
 }
@@ -304,7 +304,7 @@ Analyze the AzuraCast repository comprehensively:
 ### Project Structure
 
 ```
-php-dependency-mcp-complete/
+dpb-mcp-complete/
 ├── src/
 │   ├── server.ts              # Main MCP server
 │   ├── tools/                 # Analysis tools
@@ -341,12 +341,12 @@ npm run clean        # Clean build directory
 
 1. Check that it's properly installed:
 ```bash
-which php-dependency-mcp
+which dpb-mcp
 ```
 
 2. Test manually:
 ```bash
-echo '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}' | php-dependency-mcp
+echo '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}' | dpb-mcp
 ```
 
 3. Check Claude Code status:

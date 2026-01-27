@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/faithfm/php-dependency-mcp/pkg/types"
+	"github.com/kedson/dpb-mcp/pkg/types"
 )
 
 // ReadComposerJSON reads and parses composer.json

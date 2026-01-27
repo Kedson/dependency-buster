@@ -36,12 +36,12 @@ All 10 tools with maximum performance:
 
 ```bash
 # Clone or extract
-cd php-dependency-mcp-rust
+cd dpb-mcp-rust
 
 # Build release binary (optimized)
 cargo build --release
 
-# Binary will be at target/release/php-dependency-mcp
+# Binary will be at target/release/dpb-mcp
 ```
 
 ### Install Globally
@@ -51,7 +51,7 @@ cargo build --release
 cargo install --path .
 
 # Or copy binary
-cp target/release/php-dependency-mcp /usr/local/bin/
+cp target/release/dpb-mcp /usr/local/bin/
 ```
 
 ## ⚙️ Configuration
@@ -59,7 +59,7 @@ cp target/release/php-dependency-mcp /usr/local/bin/
 ### For Claude Code
 
 ```bash
-claude mcp add php-analyzer --scope user -- php-dependency-mcp
+claude mcp add php-analyzer --scope user -- dpb-mcp
 ```
 
 ### For Cursor
@@ -69,7 +69,7 @@ Create `.cursor/mcp.json`:
 {
   "mcpServers": {
     "php-analyzer": {
-      "command": "php-dependency-mcp"
+      "command": "dpb-mcp"
     }
   }
 }
@@ -93,7 +93,7 @@ cargo build --release
 
 ```bash
 cargo build --profile release-small
-strip target/release-small/php-dependency-mcp
+strip target/release-small/dpb-mcp
 ```
 
 ### Cross-Compilation
@@ -141,7 +141,7 @@ Tested on AzuraCast (medium PHP project, ~500 files):
 ### Project Structure
 
 ```
-php-dependency-mcp-rust/
+dpb-mcp-rust/
 ├── src/
 │   ├── main.rs              # Application entry point
 │   ├── mcp/
@@ -257,8 +257,8 @@ COPY . .
 RUN cargo build --release
 
 FROM alpine:latest
-COPY --from=builder /app/target/release/php-dependency-mcp /usr/local/bin/
-ENTRYPOINT ["php-dependency-mcp"]
+COPY --from=builder /app/target/release/dpb-mcp /usr/local/bin/
+ENTRYPOINT ["dpb-mcp"]
 ```
 
 ## 🤝 Contributing

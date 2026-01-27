@@ -1,4 +1,4 @@
-module github.com/faithfm/php-dependency-mcp
+module github.com/kedson/dpb-mcp
 
 go 1.22
 
