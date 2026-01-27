@@ -2,6 +2,11 @@ pub mod dependency;
 pub mod namespace;
 pub mod psr4;
 pub mod security;
+pub mod tracker;
+pub mod suggestions;
+
+pub use tracker::*;
+pub use suggestions::*;
 
 use anyhow::Result;
 use serde::Serialize;

@@ -1309,6 +1309,47 @@ print_ascii_report() {
     fi
     echo ""
     
+    # Agent Suggestions (Compliance Check)
+    echo -e "${BOLD}  🤖 AGENT SUGGESTIONS${NC}"
+    echo -e "  ${DIM}─────────────────────────────────────────────────────────────────────────${NC}"
+    if [ -f "$RESULTS_DIR/TypeScript_audit_security.json" ]; then
+        node -e "
+        try {
+            const data = require('$RESULTS_DIR/TypeScript_audit_security.json');
+            const result = data.result?.content?.[0]?.text;
+            if (result) {
+                const parsed = JSON.parse(result);
+                const issues = parsed.vulnerabilities || [];
+                const outdated = parsed.outdated || [];
+                
+                if (issues.length === 0 && outdated.length === 0) {
+                    console.log('  🟢 ✓ No compliance issues found');
+                } else {
+                    if (issues.length > 0) {
+                        console.log('  🔴 ✗ ' + issues.length + ' security vulnerabilities');
+                        issues.slice(0, 3).forEach(i => {
+                            console.log('     • ' + (i.package || i.name) + ': ' + (i.severity || 'unknown'));
+                        });
+                    }
+                    if (outdated.length > 0) {
+                        console.log('  🟡 ⚠ ' + outdated.length + ' outdated packages');
+                    }
+                }
+            } else {
+                console.log('  ℹ Run check_compliance tool for detailed suggestions');
+            }
+        } catch(e) { 
+            console.log('  ℹ Run get_agent_suggestions for AI agent integration');
+        }
+        " 2>/dev/null || echo "  ℹ Use MCP tools for detailed compliance checking"
+    else
+        echo "  ℹ Run analysis to get agent suggestions"
+    fi
+    echo ""
+    echo -e "  ${DIM}To get full suggestions for AI agents:${NC}"
+    echo "  echo '{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"get_agent_suggestions\",\"arguments\":{\"repo_path\":\"$TARGET_REPO\"}},\"id\":1}' | node dpb-mcp-typescript/build/server.js"
+    echo ""
+    
     # Generated Files
     echo -e "${BOLD}  📄 GENERATED FILES${NC}"
     echo -e "  ${DIM}─────────────────────────────────────────────────────────────────────────${NC}"
@@ -1321,6 +1362,7 @@ print_ascii_report() {
     echo -e "  ${DIM}─────────────────────────────────────────────────────────────────────────${NC}"
     echo "  View Dashboard:  open $DASHBOARD_FILE"
     echo "  View JSON:       cat $REPORT_FILE | jq ."
+    echo "  Agent Suggestions: (see command above)"
     echo ""
 }
 
