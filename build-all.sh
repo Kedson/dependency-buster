@@ -78,33 +78,30 @@ cd "$WORKSPACE"
 echo -e "${GREEN}✓${NC} Using workspace: $WORKSPACE"
 echo ""
 
-# Extract zip files
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}  Step 2b: Extracting Source Files${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
-
-extract_if_needed() {
-    local zipfile="$1"
-    local folder="$2"
-    
-    if [ -f "$zipfile" ]; then
-        if [ ! -d "$folder" ]; then
-            echo -e "${BLUE}📦 Extracting $zipfile...${NC}"
-            unzip -q -o "$zipfile"
-            echo -e "${GREEN}✓${NC} Extracted $folder"
-        else
-            echo -e "${GREEN}✓${NC} $folder already exists"
-        fi
+# Verify required folders exist
+verify_folder() {
+    local folder="$1"
+    if [ -d "$folder" ]; then
+        echo -e "${GREEN}✓${NC} $folder"
     else
-        echo -e "${YELLOW}⚠️${NC}  $zipfile not found"
+        echo -e "${RED}✗${NC} $folder not found!"
+        return 1
     fi
 }
 
-extract_if_needed "dpb-mcp-typescript.zip" "dpb-mcp-typescript"
-extract_if_needed "dpb-mcp-go.zip" "dpb-mcp-go"
-extract_if_needed "dpb-mcp-rust.zip" "dpb-mcp-rust"
-extract_if_needed "dpb-benchmark.zip" "dpb-benchmark"
+echo -e "${BLUE}Verifying source folders...${NC}"
+MISSING_FOLDERS=0
+verify_folder "dpb-mcp-typescript" || MISSING_FOLDERS=$((MISSING_FOLDERS + 1))
+verify_folder "dpb-mcp-go" || MISSING_FOLDERS=$((MISSING_FOLDERS + 1))
+verify_folder "dpb-mcp-rust" || MISSING_FOLDERS=$((MISSING_FOLDERS + 1))
+verify_folder "dpb-benchmark" || MISSING_FOLDERS=$((MISSING_FOLDERS + 1))
+
+if [ $MISSING_FOLDERS -gt 0 ]; then
+    echo ""
+    echo -e "${RED}⚠️  Missing $MISSING_FOLDERS required folders!${NC}"
+    echo -e "Please ensure you have cloned the complete repository."
+    exit 1
+fi
 
 echo ""
 
