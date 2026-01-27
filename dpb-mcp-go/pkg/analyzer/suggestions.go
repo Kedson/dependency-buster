@@ -143,9 +143,10 @@ func GenerateAgentSuggestions(repoPath string) (*AgentSuggestionsResponse, error
 		criticalCount := 0
 		highCount := 0
 		for _, s := range suggestions {
-			if s.Severity == "critical" {
+			switch s.Severity {
+			case "critical":
 				criticalCount++
-			} else if s.Severity == "high" {
+			case "high":
 				highCount++
 			}
 		}
