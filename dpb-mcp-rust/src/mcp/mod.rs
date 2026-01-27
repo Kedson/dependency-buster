@@ -17,8 +17,9 @@ pub mod http_transport;
 pub use errors::*;
 pub use annotations::*;
 pub use auth::*;
-pub use registry::*;
-pub use http_transport::*;
+// Registry and HTTP transport are available but not yet integrated into main server
+// pub use registry::*;
+// pub use http_transport::*;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};

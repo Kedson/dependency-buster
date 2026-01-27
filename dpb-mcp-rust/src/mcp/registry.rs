@@ -1,6 +1,8 @@
 //! Dynamic Action Registry for MCP
 //! Allows runtime registration and discovery of actions
 
+#![allow(dead_code)]
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

@@ -109,14 +109,9 @@ impl HttpTransport {
 
     /// Start HTTP server (simplified version using hyper directly)
     pub async fn start(self: Arc<Self>) -> Result<()> {
-        use hyper::{
-            body::Bytes,
-            server::conn::http1,
-            service::service_fn,
-            Method, Request, Response, StatusCode,
-        };
+        use hyper::server::conn::http1;
+        use hyper::service::service_fn;
         use hyper_util::rt::TokioIo;
-        use http_body_util::{BodyExt, Full};
         use tokio::net::TcpListener;
 
         let addr: SocketAddr = format!("{}:{}", self.config.host, self.config.port)
@@ -163,7 +158,7 @@ impl HttpTransport {
         let method = req.method().clone();
 
         // CORS headers
-        let mut response_headers = vec![
+        let response_headers = vec![
             ("Access-Control-Allow-Origin", "*"),
             ("Access-Control-Allow-Methods", "GET, POST, OPTIONS"),
             ("Access-Control-Allow-Headers", "Content-Type, Authorization"),
