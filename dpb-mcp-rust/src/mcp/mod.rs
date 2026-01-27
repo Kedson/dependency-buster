@@ -11,10 +11,14 @@
 pub mod errors;
 pub mod annotations;
 pub mod auth;
+pub mod registry;
+pub mod http_transport;
 
 pub use errors::*;
 pub use annotations::*;
 pub use auth::*;
+pub use registry::*;
+pub use http_transport::*;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -221,8 +225,8 @@ impl Server {
             },
             "features": {
                 "authentication": get_auth_info(),
-                "transports": ["stdio"],
-                "http_sse": "not_implemented"
+                "transports": ["stdio", "http", "sse"],
+                "dynamic_registry": true
             }
         });
 

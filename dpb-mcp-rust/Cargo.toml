@@ -41,6 +41,11 @@ hex = "0.4"
 rand = "0.8"
 base64 = "0.21"
 
+# HTTP/SSE Transport
+hyper = { version = "1.1", features = ["full"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+http-body-util = "0.1"
+
 [profile.release]
 opt-level = 3
 lto = true

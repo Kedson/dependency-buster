@@ -1405,10 +1405,10 @@
             const features = [
                 { id: 'errors', name: 'Typed Errors', ts: true, go: true, rust: true, desc: 'NotFoundError, ValidationError, AuthenticationError, etc.' },
                 { id: 'annotations', name: 'Tool Annotations', ts: true, go: true, rust: true, desc: 'readOnlyHint, idempotentHint, destructiveHint, cacheTtlSeconds' },
-                { id: 'http', name: 'HTTP/SSE Transport', ts: true, go: true, rust: false, desc: 'JSON-RPC over HTTP with Server-Sent Events (Rust: stdio only)' },
+                { id: 'http', name: 'HTTP/SSE Transport', ts: true, go: true, rust: true, desc: 'JSON-RPC over HTTP with Server-Sent Events' },
                 { id: 'auth', name: 'Authentication', ts: true, go: true, rust: true, desc: 'Static token via MCP_TOKEN environment variable' },
                 { id: 'context', name: 'Credentials Context', ts: true, go: true, rust: true, desc: 'RequestContext with credentials, requestId, timestamp' },
-                { id: 'registry', name: 'Dynamic Registry', ts: true, go: false, rust: false, desc: 'Runtime action registration with Zod validation' },
+                { id: 'registry', name: 'Dynamic Registry', ts: true, go: true, rust: true, desc: 'Runtime action registration with validation' },
             ];
             
             // Render per-implementation capabilities
