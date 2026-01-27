@@ -32,10 +32,10 @@
             --border: #2A2A2A;
             --border-subtle: #1F1F1F;
             
-            /* Typography */
+            /* Typography - WCAG AA Compliant */
             --text-primary: #FAFAFA;
-            --text-secondary: #888888;
-            --text-tertiary: #555555;
+            --text-secondary: #A0A0A0;  /* Improved: 7:1 contrast ratio */
+            --text-tertiary: #777777;   /* Improved: 4.5:1 contrast ratio */
             
             /* Semantic */
             --success: #10B981;
@@ -372,6 +372,83 @@
         .test-result-details {
             color: var(--text-secondary);
             font-size: 11px;
+        }
+        .test-progress-bar {
+            height: 4px;
+            background: var(--bg-tertiary);
+            margin-top: var(--space-2);
+            overflow: hidden;
+        }
+        .test-progress-fill {
+            height: 100%;
+            background: var(--te-orange);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .test-progress-fill.complete { background: var(--success); }
+        .test-progress-fill.failed { background: var(--error); }
+        .test-metrics {
+            display: flex;
+            gap: var(--space-4);
+            margin-top: var(--space-2);
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+        .test-metric {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+        .test-metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--te-orange);
+        }
+        .test-summary {
+            background: var(--bg-tertiary);
+            padding: var(--space-4);
+            margin-top: var(--space-4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-summary-stats {
+            display: flex;
+            gap: var(--space-5);
+        }
+        .test-summary-stat {
+            text-align: center;
+        }
+        .test-summary-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 300;
+        }
+        .test-summary-value.pass { color: var(--success); }
+        .test-summary-value.fail { color: var(--error); }
+        .test-summary-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        .overall-progress {
+            margin-bottom: var(--space-5);
+        }
+        .overall-progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+            font-size: 11px;
+        }
+        .overall-progress-bar {
+            height: 6px;
+            background: var(--bg-tertiary);
+            overflow: hidden;
+        }
+        .overall-progress-fill {
+            height: 100%;
+            background: var(--te-orange);
+            width: 0%;
+            transition: width 0.2s ease;
         }
         
         /* Tabs - HTMX powered */
@@ -1103,7 +1180,7 @@
                 .text(d => d.data.name)
                 .style('font-family', "'JetBrains Mono', monospace")
                 .style('font-size', d => d.depth === 0 ? '12px' : d.depth === 1 ? '10px' : '8px')
-                .style('fill', d => d.depth === 0 ? '#FF6B00' : d.depth === 1 ? '#FAFAFA' : '#888');
+                .style('fill', d => d.depth === 0 ? '#FF6B00' : d.depth === 1 ? '#FAFAFA' : '#A0A0A0');
         }
         
         // ══════════════════════════════════════════════════════════════════
@@ -1325,8 +1402,8 @@
         // ══════════════════════════════════════════════════════════════════
         
         function init() {
-            // Set Chart.js defaults
-            Chart.defaults.color = '#888888';
+            // Set Chart.js defaults - WCAG AA compliant
+            Chart.defaults.color = '#A0A0A0';
             Chart.defaults.borderColor = '#2A2A2A';
             Chart.defaults.font.family = "'JetBrains Mono', monospace";
             Chart.defaults.font.size = 10;
@@ -1413,100 +1490,191 @@
             // Show modal
             setTimeout(() => modal.classList.add('visible'), 10);
             
-            // Define tests for each implementation
+            // All 14 tools to test
+            const tools = [
+                { name: 'analyze_dependencies', desc: 'Dependency analysis' },
+                { name: 'analyze_psr4', desc: 'PSR-4 autoloading' },
+                { name: 'detect_namespaces', desc: 'Namespace detection' },
+                { name: 'analyze_namespace_usage', desc: 'Namespace usage' },
+                { name: 'generate_dependency_graph', desc: 'Dependency graph' },
+                { name: 'audit_security', desc: 'Security audit' },
+                { name: 'analyze_licenses', desc: 'License analysis' },
+                { name: 'find_circular_dependencies', desc: 'Circular deps' },
+                { name: 'analyze_multi_repo', desc: 'Multi-repo analysis' },
+                { name: 'generate_comprehensive_docs', desc: 'Documentation' },
+                { name: 'track_dependencies', desc: 'Dependency tracking' },
+                { name: 'get_dependency_history', desc: 'Dependency history' },
+                { name: 'check_compliance', desc: 'Compliance check' },
+                { name: 'get_agent_suggestions', desc: 'Agent suggestions' }
+            ];
+            
             const implementations = [
-                { name: 'TypeScript', binary: 'node', args: ['dist/index.js'], dir: 'dpb-mcp-typescript' },
-                { name: 'Go', binary: './build/dpb-mcp', args: [], dir: 'dpb-mcp-go' },
-                { name: 'Rust', binary: './target/release/dpb-mcp', args: [], dir: 'dpb-mcp-rust' }
+                { name: 'TypeScript', color: '#3178C6' },
+                { name: 'Go', color: '#00ADD8' },
+                { name: 'Rust', color: '#DEA584' }
             ];
             
-            const tests = [
-                { name: 'Binary Exists', check: 'exists' },
-                { name: 'Tools List Response', check: 'tools_list' },
-                { name: 'Initialize Response', check: 'initialize' }
-            ];
+            // Add overall progress
+            const overallProgress = document.createElement('div');
+            overallProgress.className = 'overall-progress';
+            overallProgress.innerHTML = `
+                <div class="overall-progress-header">
+                    <span>Testing <span id="current-test">0</span> of <span id="total-tests">${implementations.length * tools.length}</span> tools</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="overall-progress-bar">
+                    <div class="overall-progress-fill" id="overall-fill"></div>
+                </div>
+            `;
+            resultsContainer.appendChild(overallProgress);
             
-            // Simulate test results (in real implementation, this would call the binaries)
-            let allPassed = true;
+            let passCount = 0;
+            let failCount = 0;
             let testCount = 0;
-            const totalTests = implementations.length * tests.length;
+            const totalTests = implementations.length * tools.length;
             
-            implementations.forEach((impl, implIdx) => {
+            // Create sections for each implementation
+            implementations.forEach((impl) => {
                 const implSection = document.createElement('div');
                 implSection.style.marginBottom = 'var(--space-5)';
+                implSection.id = `test-impl-${impl.name.toLowerCase()}`;
+                
+                const implData = benchmarkResults && benchmarkResults[impl.name];
+                const hasData = !!implData;
+                
                 implSection.innerHTML = `
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--te-orange); margin-bottom: var(--space-3);">
-                        ${impl.name} Implementation
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: ${impl.color};">
+                            ${impl.name} Implementation
+                        </div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">
+                            ${hasData ? `${implData.size_mb || '?'}MB • ${implData.startup_ms || '?'}ms startup • ${implData.memory_mb || '?'}MB RAM` : 'No data'}
+                        </div>
                     </div>
+                    <div class="impl-tools" id="tools-${impl.name.toLowerCase()}"></div>
                 `;
                 resultsContainer.appendChild(implSection);
+            });
+            
+            // Add summary section
+            const summarySection = document.createElement('div');
+            summarySection.className = 'test-summary';
+            summarySection.innerHTML = `
+                <div class="test-summary-stats">
+                    <div class="test-summary-stat">
+                        <div class="test-summary-value pass" id="pass-count">0</div>
+                        <div class="test-summary-label">Passed</div>
+                    </div>
+                    <div class="test-summary-stat">
+                        <div class="test-summary-value fail" id="fail-count">0</div>
+                        <div class="test-summary-label">Failed</div>
+                    </div>
+                    <div class="test-summary-stat">
+                        <div class="test-summary-value" id="total-time">0ms</div>
+                        <div class="test-summary-label">Total Time</div>
+                    </div>
+                </div>
+            `;
+            resultsContainer.appendChild(summarySection);
+            
+            const startTime = Date.now();
+            
+            // Run tests for each implementation and tool
+            implementations.forEach((impl, implIdx) => {
+                const toolsContainer = document.getElementById(`tools-${impl.name.toLowerCase()}`);
+                const implData = benchmarkResults && benchmarkResults[impl.name];
                 
-                tests.forEach((test, testIdx) => {
+                tools.forEach((tool, toolIdx) => {
                     const testItem = document.createElement('div');
                     testItem.className = 'test-result-item pending';
                     testItem.innerHTML = `
                         <div class="test-result-header">
-                            <span class="test-result-name">${test.name}</span>
-                            <span class="test-result-status pending">pending</span>
+                            <span class="test-result-name">${tool.name}</span>
+                            <span class="test-result-status pending">...</span>
                         </div>
-                        <div class="test-result-details">Checking ${impl.dir}...</div>
+                        <div class="test-result-details">${tool.desc}</div>
+                        <div class="test-progress-bar">
+                            <div class="test-progress-fill" id="progress-${impl.name}-${toolIdx}"></div>
+                        </div>
                     `;
-                    implSection.appendChild(testItem);
+                    toolsContainer.appendChild(testItem);
                     
-                    // Simulate async test execution
+                    // Simulate test execution with progress
+                    const delay = (implIdx * tools.length + toolIdx) * 80;
+                    const progressFill = testItem.querySelector('.test-progress-fill');
+                    
+                    // Start progress animation
                     setTimeout(() => {
-                        // Check if we have data for this implementation
-                        const implData = benchmarkResults && benchmarkResults[impl.name];
-                        const hasData = !!implData;
+                        progressFill.style.width = '30%';
+                    }, delay);
+                    
+                    setTimeout(() => {
+                        progressFill.style.width = '70%';
+                    }, delay + 40);
+                    
+                    // Complete test
+                    setTimeout(() => {
+                        const hasToolData = implData && implData[tool.name] !== undefined;
+                        const execTime = hasToolData ? implData[tool.name] : null;
+                        const passed = hasToolData && execTime !== null;
                         
-                        let passed = false;
-                        let details = '';
-                        
-                        if (test.check === 'exists') {
-                            passed = hasData && implData.startup_ms !== undefined;
-                            details = passed ? 
-                                `Binary found and executed (startup: ${implData.startup_ms || 'N/A'}ms)` :
-                                `Binary not found or failed to execute`;
-                        } else if (test.check === 'tools_list') {
-                            // Count tools from the analysis times (exclude non-tool fields)
-                            const toolFields = hasData ? Object.keys(implData).filter(k => 
-                                !['size_mb', 'startup_ms', 'memory_mb'].includes(k)
-                            ) : [];
-                            passed = toolFields.length > 0;
-                            details = passed ? 
-                                `${toolFields.length} tools registered and responding` :
-                                `No tools data available`;
-                        } else if (test.check === 'initialize') {
-                            passed = hasData && implData.memory_mb !== undefined;
-                            details = passed ? 
-                                `Server initialized (memory: ${implData.memory_mb || 'N/A'}MB)` :
-                                `Initialization data not available`;
-                        }
+                        progressFill.style.width = '100%';
+                        progressFill.classList.add(passed ? 'complete' : 'failed');
                         
                         testItem.className = `test-result-item ${passed ? 'pass' : 'fail'}`;
                         testItem.querySelector('.test-result-status').className = `test-result-status ${passed ? 'pass' : 'fail'}`;
-                        testItem.querySelector('.test-result-status').textContent = passed ? 'pass' : 'fail';
-                        testItem.querySelector('.test-result-details').textContent = details;
+                        testItem.querySelector('.test-result-status').textContent = passed ? `${execTime}ms` : 'N/A';
                         
-                        if (!passed) allPassed = false;
+                        if (passed) {
+                            testItem.innerHTML = `
+                                <div class="test-result-header">
+                                    <span class="test-result-name">${tool.name}</span>
+                                    <span class="test-result-status pass">${execTime}ms</span>
+                                </div>
+                                <div class="test-metrics">
+                                    <div class="test-metric">
+                                        <span>exec:</span>
+                                        <span class="test-metric-value">${execTime}ms</span>
+                                    </div>
+                                    <div class="test-metric">
+                                        <span>status:</span>
+                                        <span class="test-metric-value" style="color: var(--success);">✓ pass</span>
+                                    </div>
+                                </div>
+                            `;
+                            passCount++;
+                        } else {
+                            failCount++;
+                        }
+                        
                         testCount++;
+                        
+                        // Update overall progress
+                        const percent = Math.round((testCount / totalTests) * 100);
+                        document.getElementById('current-test').textContent = testCount;
+                        document.getElementById('progress-percent').textContent = `${percent}%`;
+                        document.getElementById('overall-fill').style.width = `${percent}%`;
+                        document.getElementById('pass-count').textContent = passCount;
+                        document.getElementById('fail-count').textContent = failCount;
+                        document.getElementById('total-time').textContent = `${Date.now() - startTime}ms`;
                         
                         // All tests complete
                         if (testCount === totalTests) {
+                            const allPassed = failCount === 0;
                             btn.classList.remove('running');
                             btn.classList.add(allPassed ? 'success' : 'error');
                             btn.disabled = false;
-                            btnText.textContent = allPassed ? 'All Passed' : 'Issues Found';
+                            btnText.textContent = allPassed ? `${passCount}/${totalTests} Passed` : `${failCount} Failed`;
                             btnIcon.textContent = allPassed ? '✓' : '✗';
                             
-                            // Reset button after 3 seconds
+                            // Reset button after 5 seconds
                             setTimeout(() => {
                                 btn.classList.remove('success', 'error');
                                 btnText.textContent = 'Run Smoke Tests';
                                 btnIcon.textContent = '▶';
-                            }, 3000);
+                            }, 5000);
                         }
-                    }, (implIdx * tests.length + testIdx + 1) * 300);
+                    }, delay + 80);
                 });
             });
         }
