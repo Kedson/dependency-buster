@@ -1456,27 +1456,30 @@
                     // Simulate async test execution
                     setTimeout(() => {
                         // Check if we have data for this implementation
-                        const hasData = benchmarkData && benchmarkData.implementations && 
-                            benchmarkData.implementations[impl.name.toLowerCase()];
+                        const implData = benchmarkResults && benchmarkResults[impl.name];
+                        const hasData = !!implData;
                         
                         let passed = false;
                         let details = '';
                         
                         if (test.check === 'exists') {
-                            passed = hasData && benchmarkData.implementations[impl.name.toLowerCase()].startup_time !== null;
+                            passed = hasData && implData.startup_ms !== undefined;
                             details = passed ? 
-                                `Binary found and executed (startup: ${benchmarkData.implementations[impl.name.toLowerCase()].startup_time || 'N/A'}ms)` :
+                                `Binary found and executed (startup: ${implData.startup_ms || 'N/A'}ms)` :
                                 `Binary not found or failed to execute`;
                         } else if (test.check === 'tools_list') {
-                            passed = hasData && benchmarkData.implementations[impl.name.toLowerCase()].analysis_times;
-                            const toolCount = passed ? Object.keys(benchmarkData.implementations[impl.name.toLowerCase()].analysis_times || {}).length : 0;
+                            // Count tools from the analysis times (exclude non-tool fields)
+                            const toolFields = hasData ? Object.keys(implData).filter(k => 
+                                !['size_mb', 'startup_ms', 'memory_mb'].includes(k)
+                            ) : [];
+                            passed = toolFields.length > 0;
                             details = passed ? 
-                                `${toolCount} tools registered and responding` :
+                                `${toolFields.length} tools registered and responding` :
                                 `No tools data available`;
                         } else if (test.check === 'initialize') {
-                            passed = hasData && benchmarkData.implementations[impl.name.toLowerCase()].memory_mb !== null;
+                            passed = hasData && implData.memory_mb !== undefined;
                             details = passed ? 
-                                `Server initialized (memory: ${benchmarkData.implementations[impl.name.toLowerCase()].memory_mb || 'N/A'}MB)` :
+                                `Server initialized (memory: ${implData.memory_mb || 'N/A'}MB)` :
                                 `Initialization data not available`;
                         }
                         
