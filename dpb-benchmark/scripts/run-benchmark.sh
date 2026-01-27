@@ -1201,7 +1201,14 @@ print_ascii_report() {
     echo -e "${PURPLE}│${NC}  ${BOLD}dependency-buster${NC} // Analysis Complete                                      ${PURPLE}│${NC}"
     echo -e "${PURPLE}├──────────────────────────────────────────────────────────────────────────────┤${NC}"
     echo -e "${PURPLE}│${NC}  📦 ${BOLD}$PROJECT_NAME${NC}"
-    echo -e "${PURPLE}│${NC}     Languages: ${CYAN}${DETECTED_LANGS[*]}${NC} • Package Manager: ${CYAN}$DETECTED_PKG_MANAGER${NC}"
+    
+    # Format languages nicely
+    local langs_str="${DETECTED_LANGS[*]}"
+    if [ -z "$langs_str" ] || [ "$langs_str" = "Unknown" ]; then
+        langs_str="Auto-detected"
+    fi
+    
+    echo -e "${PURPLE}│${NC}     Languages: ${CYAN}${langs_str}${NC} • Package Manager: ${CYAN}$DETECTED_PKG_MANAGER${NC}"
     echo -e "${PURPLE}│${NC}     Files: $TOTAL_FILES • Analyzed: $(date +'%Y-%m-%d %H:%M:%S')"
     echo -e "${PURPLE}└──────────────────────────────────────────────────────────────────────────────┘${NC}"
     echo ""
@@ -1257,27 +1264,55 @@ print_ascii_report() {
     echo -e "  ${DIM}─────────────────────────────────────────────────────────────────────────${NC}"
     
     # Try to extract top dependencies from analysis data
+    local tree_printed=false
     if [ -f "$RESULTS_DIR/TypeScript_analyze_dependencies.json" ]; then
         echo -e "  ${DIM}(from TypeScript analyzer)${NC}"
         node -e "
         try {
-            const data = require('$RESULTS_DIR/TypeScript_analyze_dependencies.json');
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('$RESULTS_DIR/TypeScript_analyze_dependencies.json', 'utf8'));
             const result = data.result?.content?.[0]?.text;
             if (result) {
                 const parsed = JSON.parse(result);
                 const prod = parsed.production || {};
-                const deps = Object.entries(prod).slice(0, 10);
-                deps.forEach(([name, version], i) => {
-                    const isLast = i === deps.length - 1;
-                    const prefix = isLast ? '  └── ' : '  ├── ';
-                    console.log(prefix + name + ' @ ' + version);
-                });
-                if (Object.keys(prod).length > 10) {
-                    console.log('  ... and ' + (Object.keys(prod).length - 10) + ' more');
+                const tree = parsed.tree || [];
+                
+                // Use tree if available, otherwise use production deps
+                if (tree.length > 0) {
+                    const topDeps = tree.slice(0, 10);
+                    topDeps.forEach((dep, i) => {
+                        const isLast = i === topDeps.length - 1;
+                        const prefix = isLast ? '  └── ' : '  ├── ';
+                        console.log(prefix + dep.name + ' @ ' + dep.version);
+                    });
+                    if (tree.length > 10) {
+                        console.log('  ... and ' + (tree.length - 10) + ' more dependencies');
+                    }
+                } else if (Object.keys(prod).length > 0) {
+                    const deps = Object.entries(prod).slice(0, 10);
+                    deps.forEach(([name, version], i) => {
+                        const isLast = i === deps.length - 1;
+                        const prefix = isLast ? '  └── ' : '  ├── ';
+                        console.log(prefix + name + ' @ ' + version);
+                    });
+                    if (Object.keys(prod).length > 10) {
+                        console.log('  ... and ' + (Object.keys(prod).length - 10) + ' more');
+                    }
+                } else {
+                    console.log('  (No dependencies found in composer.json)');
                 }
+            } else {
+                console.log('  (Analysis result empty)');
             }
-        } catch(e) { console.log('  (Could not parse dependencies)'); }
-        " 2>/dev/null || echo "  (Could not parse dependencies)"
+        } catch(e) { 
+            console.log('  (Parse error: ' + e.message + ')'); 
+        }
+        " 2>/dev/null
+        tree_printed=true
+    fi
+    
+    if [ "$tree_printed" = false ]; then
+        echo -e "  ${DIM}(Run analysis first to see dependency tree)${NC}"
     fi
     echo ""
     

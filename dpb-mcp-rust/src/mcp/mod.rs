@@ -56,6 +56,7 @@ pub struct Property {
 
 #[derive(Debug, Deserialize)]
 struct JsonRpcRequest {
+    #[allow(dead_code)]
     jsonrpc: String,
     id: Option<Value>,
     method: String,
@@ -179,7 +180,7 @@ impl Server {
     }
 
     async fn run_http(&self) -> Result<()> {
-        let port = std::env::var("MCP_HTTP_PORT").unwrap_or_else(|_| "3000".to_string());
+        let _port = std::env::var("MCP_HTTP_PORT").unwrap_or_else(|_| "3000".to_string());
         eprintln!("HTTP transport not yet implemented in Rust. Use stdio mode.");
         eprintln!("To use HTTP, set MCP_TRANSPORT=stdio (default)");
         // For a full HTTP implementation, we would use axum, actix-web, or hyper

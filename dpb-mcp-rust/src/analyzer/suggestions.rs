@@ -5,7 +5,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::tracker::{check_compliance, get_dependency_history, ComplianceIssue, TrackedDependency};
+use super::tracker::{check_compliance, get_dependency_history};
 
 /// A structured suggestion for AI agents
 #[derive(Debug, Clone, Serialize, Deserialize)]

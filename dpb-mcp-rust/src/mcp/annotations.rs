@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Tool annotations for AI clients
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

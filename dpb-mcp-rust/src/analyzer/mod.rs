@@ -5,9 +5,6 @@ pub mod security;
 pub mod tracker;
 pub mod suggestions;
 
-pub use tracker::*;
-pub use suggestions::*;
-
 use anyhow::Result;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -118,6 +115,7 @@ fn sanitize_for_mermaid(name: &str) -> String {
         .replace('@', "_")
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Serialize)]
 pub struct MultiRepoAnalysisResult {
     pub repositories: Vec<RepoConfig>,

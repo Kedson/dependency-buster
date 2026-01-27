@@ -1,6 +1,8 @@
 //! Dependency Tracker - Timestamps and versioning for dependency changes
 //! Enables reverting or replacing non-compliant dependencies
 
+#![allow(dead_code)]
+
 use anyhow::Result;
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};

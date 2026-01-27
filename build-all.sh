@@ -302,20 +302,45 @@ echo "  Test Repo:  $TEST_REPO_PATH"
 echo "  Benchmark:  $WORKSPACE/dpb-benchmark"
 echo ""
 
-echo -e "${YELLOW}🚀 Next Step: Run Benchmark${NC}"
-echo ""
-echo -e "  ${GREEN}Run the benchmark to compare all implementations:${NC}"
-echo "    cd $WORKSPACE/dpb-benchmark"
-echo "    ./scripts/run-benchmark.sh"
-echo ""
-echo -e "  This will:"
-echo "    • Test startup time for each implementation"
-echo "    • Measure memory usage"
-echo "    • Run analysis tools against test repository"
-echo "    • Generate comparison report and dashboard"
+# Auto-run benchmark
+echo -e "${YELLOW}🚀 Running Benchmark...${NC}"
 echo ""
 
-echo -e "${PURPLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${PURPLE}  All implementations built! Ready to benchmark! 🎯${NC}"
-echo -e "${PURPLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
+    chmod +x "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh"
+    cd "$WORKSPACE/dpb-benchmark"
+    ./scripts/run-benchmark.sh "$TEST_REPO_PATH"
+    
+    echo ""
+    echo -e "${PURPLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${PURPLE}  ✅ Build & Benchmark Complete!${NC}"
+    echo -e "${PURPLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    
+    # Ask to open dashboard
+    DASHBOARD_PATH="$WORKSPACE/dpb-benchmark/dashboard/index.html"
+    if [ -f "$DASHBOARD_PATH" ]; then
+        echo -e "${CYAN}Would you like to open the dashboard in your browser? [Y/n]${NC}"
+        read -r -t 10 response
+        response=${response:-Y}
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            echo -e "${GREEN}Opening dashboard...${NC}"
+            if command -v open &> /dev/null; then
+                open "$DASHBOARD_PATH"
+            elif command -v xdg-open &> /dev/null; then
+                xdg-open "$DASHBOARD_PATH"
+            elif command -v start &> /dev/null; then
+                start "$DASHBOARD_PATH"
+            else
+                echo -e "${YELLOW}Could not auto-open. Please open manually:${NC}"
+                echo "  $DASHBOARD_PATH"
+            fi
+        else
+            echo -e "${DIM}Dashboard saved to: $DASHBOARD_PATH${NC}"
+        fi
+    fi
+else
+    echo -e "${RED}✗ Benchmark script not found${NC}"
+fi
+
 echo ""

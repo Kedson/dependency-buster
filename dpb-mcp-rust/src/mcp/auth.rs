@@ -1,8 +1,11 @@
+#![allow(dead_code)]
+
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use serde::{Deserialize, Serialize};
+use sha2::{Sha256, Digest};
 use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::{SystemTime, UNIX_EPOCH};
-use sha2::{Sha256, Digest};
 
 use super::errors::authentication_error;
 use super::McpError;
@@ -169,5 +172,5 @@ pub fn generate_token() -> String {
     use rand::Rng;
     let mut rng = rand::thread_rng();
     let bytes: [u8; 24] = rng.gen();
-    base64::encode(&bytes)
+    BASE64.encode(&bytes)
 }
