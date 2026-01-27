@@ -221,7 +221,8 @@ impl Server {
             },
             "features": {
                 "authentication": get_auth_info(),
-                "transports": ["stdio", "http", "sse"]
+                "transports": ["stdio"],
+                "http_sse": "not_implemented"
             }
         });
 
