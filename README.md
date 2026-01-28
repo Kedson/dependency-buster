@@ -1,4 +1,4 @@
-# dependency-buster 🔍
+# dependency-buster
 
 > Universal dependency analyzer for any codebase • MCP Server implementations in TypeScript, Go, and Rust
 
@@ -7,20 +7,20 @@
 
 ---
 
-## ✨ Features
+## Features
 
-- **🌐 Universal Language Support** - Analyze PHP, JavaScript, TypeScript, Python, Go, Rust, Java, Ruby, C# and more
-- **📦 Dependency Analysis** - Production & development dependency tracking with version resolution
-- **🔒 Security Auditing** - Vulnerability detection across package ecosystems
-- **📜 License Compliance** - Track and verify dependency licenses for legal compliance
-- **🏗️ Namespace Detection** - Code structure and module analysis
-- **⚡ Triple Implementation** - Choose TypeScript (easy), Go (fast), or Rust (fastest)
-- **🎨 Beautiful Dashboard** - Bauhaus-inspired visualization with charts and trees
-- **🖥️ CLI Reports** - ASCII-styled terminal output for CI/CD pipelines
+- **Universal Language Support** - Analyze PHP, JavaScript, TypeScript, Python, Go, Rust, Java, Ruby, C# and more
+- **Dependency Analysis** - Production & development dependency tracking with version resolution
+- **Security Auditing** - Vulnerability detection across package ecosystems
+- **License Compliance** - Track and verify dependency licenses for legal compliance
+- **Namespace Detection** - Code structure and module analysis
+- **Triple Implementation** - Choose TypeScript (easy), Go (fast), or Rust (fastest)
+- **Beautiful Dashboard** - Bauhaus-inspired visualization with charts and trees
+- **CLI Reports** - ASCII-styled terminal output for CI/CD pipelines
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Clone and Build
 
@@ -64,13 +64,13 @@ open dpb-benchmark/dashboard/index.html
 
 ---
 
-## 📦 Implementations
+## Implementations
 
 | Implementation | Speed | Size | Best For |
 |----------------|-------|------|----------|
-| **TypeScript** | ⭐⭐⭐ | 0.01 MB | Quick setup, familiar ecosystem |
-| **Go** | ⭐⭐⭐⭐⭐ | 6 MB | Production workloads, Go shops |
-| **Rust** | ⭐⭐⭐⭐⭐ | 2.6 MB | Maximum performance, memory safety |
+| **TypeScript** | ★★★ | 0.01 MB | Quick setup, familiar ecosystem |
+| **Go** | ★★★★★ | 6 MB | Production workloads, Go shops |
+| **Rust** | ★★★★★ | 2.6 MB | Maximum performance, memory safety |
 
 ### Performance Benchmarks
 
@@ -83,7 +83,7 @@ open dpb-benchmark/dashboard/index.html
 
 ---
 
-## 🔧 IDE Integration
+## IDE Integration
 
 dependency-buster works with any MCP-compatible IDE or tool:
 
@@ -122,11 +122,11 @@ dependency-buster works with any MCP-compatible IDE or tool:
 }
 ```
 
-📚 **See [IDE_INTEGRATION.md](./IDE_INTEGRATION.md) for complete setup instructions**
+**See [IDE_INTEGRATION.md](./IDE_INTEGRATION.md) for complete setup instructions**
 
 ---
 
-## 🛠️ Available Tools (14 Total)
+## Available Tools (14 Total)
 
 ### Core Analysis Tools
 
@@ -167,7 +167,7 @@ All tools include enterprise annotations:
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 dependency-buster/
@@ -200,7 +200,7 @@ dependency-buster/
 
 ---
 
-## 🔐 Enterprise Features
+## Enterprise Features
 
 All implementations support:
 
@@ -229,7 +229,7 @@ export MCP_HTTP_PORT=3000
 
 ---
 
-## 📊 Dashboard
+## Dashboard
 
 The benchmark suite generates a beautiful Bauhaus-inspired dashboard:
 
@@ -260,7 +260,7 @@ The server runs on `http://localhost:8080` by default.
 
 ---
 
-## 🔄 CI/CD Integration
+## CI/CD Integration
 
 ### GitHub Actions
 
@@ -296,7 +296,7 @@ jobs:
 
 ---
 
-## 🧪 Development
+## Development
 
 ### Prerequisites
 
@@ -329,7 +329,7 @@ cargo test
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) first.
 
@@ -341,24 +341,14 @@ Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.m
 
 ---
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](./LICENSE) for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Model Context Protocol](https://modelcontextprotocol.io) - The protocol that powers this
 - [Backstage](https://backstage.io) - Inspiration for enterprise features
 - [AzuraCast](https://azuracast.com) - Test repository for benchmarking
-
----
-
-<div align="center">
-
-**[Documentation](./IDE_INTEGRATION.md)** • **[Issues](https://github.com/your-username/dependency-buster/issues)** • **[Discussions](https://github.com/your-username/dependency-buster/discussions)**
-
-Made with ❤️ for the developer community
-
-</div>
