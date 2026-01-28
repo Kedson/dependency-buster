@@ -4,6 +4,7 @@ pub mod psr4;
 pub mod security;
 pub mod tracker;
 pub mod suggestions;
+pub mod mkdocs;
 
 use anyhow::Result;
 use serde::Serialize;

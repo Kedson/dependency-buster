@@ -126,7 +126,7 @@ dependency-buster works with any MCP-compatible IDE or tool:
 
 ---
 
-## Available Tools (14 Total)
+## Available Tools (15 Total)
 
 ### Core Analysis Tools
 
@@ -142,6 +142,7 @@ dependency-buster works with any MCP-compatible IDE or tool:
 | 8 | `find_circular_dependencies` | Find circular dependency chains in the package graph |
 | 9 | `analyze_multi_repo` | Analyze dependencies across multiple repositories |
 | 10 | `generate_comprehensive_docs` | Generate comprehensive markdown documentation for a repository |
+| 11 | `generate_mkdocs_docs` | Generate MkDocs-compatible documentation site with multi-file structure, navigation, and changelog |
 
 ### Tracking & AI Agent Tools
 

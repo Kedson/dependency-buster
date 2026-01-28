@@ -23,6 +23,7 @@ import { auditSecurityIssues } from './tools/security-auditor.js';
 import { analyzeLicenses } from './tools/license-analyzer.js';
 import { createDependencySnapshot, getDependencyHistory, checkCompliance, saveSnapshot } from './tools/dependency-tracker.js';
 import { generateAgentSuggestions, formatSuggestionsForMCP, getAgentHooks } from './tools/agent-suggestions.js';
+import { generateMkDocsDocs } from './tools/mkdocs-generator.js';
 import { readComposerJson } from './utils/composer-utils.js';
 import * as fs from 'fs/promises';
 
@@ -205,6 +206,23 @@ const enhancedTools: EnhancedTool[] = [
       required: ['repo_path']
     },
     annotations: { title: 'Generate Documentation', ...StandardAnnotations.DOCUMENTATION }
+  },
+  {
+    name: 'generate_mkdocs_docs',
+    description: 'Generate MkDocs-compatible documentation site with multi-file structure, navigation, and changelog',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        repo_path: { type: 'string', description: 'Absolute path to repository' },
+        output_dir: { type: 'string', description: 'Output directory for docs (default: docs/)' },
+        include_changelog: { type: 'boolean', description: 'Include dependency changelog (default: true)' },
+        format: { type: 'string', description: 'Output format: mkdocs, html, or markdown (default: mkdocs)' },
+        site_name: { type: 'string', description: 'Site name for mkdocs.yml (optional)' },
+        site_description: { type: 'string', description: 'Site description for mkdocs.yml (optional)' }
+      },
+      required: ['repo_path']
+    },
+    annotations: { title: 'Generate MkDocs Site', ...StandardAnnotations.DOCUMENTATION }
   }
 ];
 
@@ -398,6 +416,36 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         
         return { content: [{ type: 'text', text: markdown }] };
+      }
+
+      case 'generate_mkdocs_docs': {
+        const { 
+          repo_path, 
+          output_dir, 
+          include_changelog = true, 
+          format = 'mkdocs',
+          site_name,
+          site_description
+        } = args as { 
+          repo_path: string; 
+          output_dir?: string; 
+          include_changelog?: boolean; 
+          format?: 'mkdocs' | 'html' | 'markdown';
+          site_name?: string;
+          site_description?: string;
+        };
+        await validateRepoPath(repo_path);
+        
+        const result = await generateMkDocsDocs({
+          repoPath: repo_path,
+          outputDir: output_dir,
+          includeChangelog: include_changelog,
+          format,
+          siteName: site_name,
+          siteDescription: site_description,
+        });
+        
+        return { content: [{ type: 'text', text: result }] };
       }
 
       default:

@@ -117,7 +117,7 @@ export async function createDependencySnapshot(repoPath: string): Promise<Depend
 /**
  * Load existing tracker data
  */
-async function loadTracker(repoPath: string): Promise<DependencySnapshot | null> {
+export async function loadTracker(repoPath: string): Promise<DependencySnapshot | null> {
   const trackerPath = path.join(repoPath, TRACKER_FILE);
   try {
     const content = await fs.promises.readFile(trackerPath, 'utf-8');

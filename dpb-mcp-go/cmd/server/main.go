@@ -247,6 +247,72 @@ func registerTools(server *mcp.Server) {
 		return analyzer.GenerateComprehensiveDocs(repoPath, outputPath)
 	})
 
+	// Tool 15: Generate MkDocs Docs
+	server.RegisterTool(mcp.Tool{
+		Name:        "generate_mkdocs_docs",
+		Description: "Generate MkDocs-compatible documentation site with multi-file structure, navigation, and changelog",
+		InputSchema: mcp.InputSchema{
+			Type: "object",
+			Properties: map[string]mcp.Property{
+				"repo_path": {
+					Type:        "string",
+					Description: "Absolute path to repository",
+				},
+				"output_dir": {
+					Type:        "string",
+					Description: "Output directory for docs (default: docs/)",
+				},
+				"include_changelog": {
+					Type:        "boolean",
+					Description: "Include dependency changelog (default: true)",
+				},
+				"format": {
+					Type:        "string",
+					Description: "Output format: mkdocs, html, or markdown (default: mkdocs)",
+				},
+				"site_name": {
+					Type:        "string",
+					Description: "Site name for mkdocs.yml (optional)",
+				},
+				"site_description": {
+					Type:        "string",
+					Description: "Site description for mkdocs.yml (optional)",
+				},
+			},
+			Required: []string{"repo_path"},
+		},
+	}, func(args map[string]interface{}) (interface{}, error) {
+		repoPath := args["repo_path"].(string)
+		outputDir := ""
+		if od, ok := args["output_dir"].(string); ok {
+			outputDir = od
+		}
+		includeChangelog := true
+		if ic, ok := args["include_changelog"].(bool); ok {
+			includeChangelog = ic
+		}
+		format := "mkdocs"
+		if f, ok := args["format"].(string); ok && f != "" {
+			format = f
+		}
+		siteName := ""
+		if sn, ok := args["site_name"].(string); ok {
+			siteName = sn
+		}
+		siteDescription := ""
+		if sd, ok := args["site_description"].(string); ok {
+			siteDescription = sd
+		}
+		return analyzer.GenerateMkDocsDocs(analyzer.MkDocsOptions{
+			RepoPath:        repoPath,
+			OutputDir:       outputDir,
+			IncludeChangelog: includeChangelog,
+			Format:          format,
+			SiteName:        siteName,
+			SiteDescription: siteDescription,
+		})
+	})
+
 	// Tool 11: Track Dependencies
 	server.RegisterTool(mcp.Tool{
 		Name:        "track_dependencies",

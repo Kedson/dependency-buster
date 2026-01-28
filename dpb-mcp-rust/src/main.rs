@@ -277,6 +277,77 @@ async fn register_tools(server: &Server) {
         )
         .await;
 
+    // Tool 15: Generate MkDocs Docs
+    server
+        .register_tool(
+            Tool {
+                name: "generate_mkdocs_docs".to_string(),
+                description: "Generate MkDocs-compatible documentation site with multi-file structure, navigation, and changelog".to_string(),
+                input_schema: InputSchema {
+                    schema_type: "object".to_string(),
+                    properties: HashMap::from([
+                        ("repo_path".to_string(), Property {
+                            property_type: "string".to_string(),
+                            description: "Absolute path to repository".to_string(),
+                        }),
+                        ("output_dir".to_string(), Property {
+                            property_type: "string".to_string(),
+                            description: "Output directory for docs (default: docs/)".to_string(),
+                        }),
+                        ("include_changelog".to_string(), Property {
+                            property_type: "boolean".to_string(),
+                            description: "Include dependency changelog (default: true)".to_string(),
+                        }),
+                        ("format".to_string(), Property {
+                            property_type: "string".to_string(),
+                            description: "Output format: mkdocs, html, or markdown (default: mkdocs)".to_string(),
+                        }),
+                        ("site_name".to_string(), Property {
+                            property_type: "string".to_string(),
+                            description: "Site name for mkdocs.yml (optional)".to_string(),
+                        }),
+                        ("site_description".to_string(), Property {
+                            property_type: "string".to_string(),
+                            description: "Site description for mkdocs.yml (optional)".to_string(),
+                        }),
+                    ]),
+                    required: vec!["repo_path".to_string()],
+                },
+                annotations: None,
+            },
+            |args| {
+                use analyzer::mkdocs::MkDocsOptions;
+                let repo_path = args.get("repo_path")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| anyhow::anyhow!("repo_path required"))?;
+                let output_dir = args.get("output_dir")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let include_changelog = args.get("include_changelog")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(true);
+                let format = args.get("format")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("mkdocs")
+                    .to_string();
+                let site_name = args.get("site_name")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let site_description = args.get("site_description")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                analyzer::mkdocs::generate_mkdocs_docs(MkDocsOptions {
+                    repo_path: repo_path.to_string(),
+                    output_dir,
+                    include_changelog,
+                    format,
+                    site_name,
+                    site_description,
+                })
+            },
+        )
+        .await;
+
     // Tool 11: Track Dependencies
     server
         .register_tool(
