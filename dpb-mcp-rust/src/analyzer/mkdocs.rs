@@ -104,7 +104,7 @@ fn generate_index(
     project_name: &str,
     description: &str,
     composer: &crate::types::ComposerJson,
-    _deps: &serde_json::Value,
+    deps: &serde_json::Value,
     include_changelog: bool,
 ) -> String {
     let now = Utc::now().to_rfc3339();
@@ -116,14 +116,24 @@ fn generate_index(
         licenses.join(", ")
     };
 
+    // Extract dependency counts from JSON
+    let prod_count = deps.get("stats")
+        .and_then(|s| s.get("totalProduction"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let dev_count = deps.get("stats")
+        .and_then(|s| s.get("totalDevelopment"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+
     let mut content = format!("# {}\n\n", project_name);
     content.push_str(&format!("{}\n\n", description));
     content.push_str(&format!("**Generated:** {}\n\n", now));
     content.push_str("## Quick Overview\n\n");
     content.push_str(&format!("- **Project Type:** {}\n", project_type));
     content.push_str(&format!("- **License:** {}\n", license_str));
-    content.push_str("- **Production Dependencies:** See dependencies.md\n");
-    content.push_str("- **Development Dependencies:** See dependencies.md\n\n");
+    content.push_str(&format!("- **Production Dependencies:** {}\n", prod_count));
+    content.push_str(&format!("- **Development Dependencies:** {}\n\n", dev_count));
     content.push_str("## Documentation Sections\n\n");
     content.push_str("- [Dependencies](./dependencies.md) - Complete dependency analysis and tree\n");
     content.push_str("- [Security](./security.md) - Security audit and vulnerability report\n");
@@ -143,10 +153,55 @@ fn generate_index(
     content
 }
 
-fn generate_dependencies_doc(_deps: &serde_json::Value, graph: &str) -> String {
+fn generate_dependencies_doc(deps: &serde_json::Value, graph: &str) -> String {
     let mut content = String::from("# Dependencies\n\n");
-    content.push_str("## Summary\n\n");
-    content.push_str("See full dependency analysis below.\n\n");
+    
+    // Extract stats
+    if let Some(stats) = deps.get("stats") {
+        let prod = stats.get("totalProduction").and_then(|v| v.as_u64()).unwrap_or(0);
+        let dev = stats.get("totalDevelopment").and_then(|v| v.as_u64()).unwrap_or(0);
+        content.push_str("## Summary\n\n");
+        content.push_str(&format!("- **Production:** {} packages\n", prod));
+        content.push_str(&format!("- **Development:** {} packages\n", dev));
+        content.push_str(&format!("- **Total:** {} packages\n\n", prod + dev));
+    }
+    
+    // Extract production dependencies
+    if let Some(production) = deps.get("production").and_then(|v| v.as_object()) {
+        if !production.is_empty() {
+            content.push_str("## Production Dependencies\n\n");
+            content.push_str("| Package | Version |\n");
+            content.push_str("|---------|----------|\n");
+            for (name, version) in production.iter().take(50) {
+                let ver_str = version.as_str().unwrap_or("");
+                content.push_str(&format!("| `{}` | `{}` |\n", name, ver_str));
+            }
+            if production.len() > 50 {
+                content.push_str(&format!("\n*... and {} more*\n\n", production.len() - 50));
+            } else {
+                content.push_str("\n");
+            }
+        }
+    }
+    
+    // Extract development dependencies
+    if let Some(development) = deps.get("development").and_then(|v| v.as_object()) {
+        if !development.is_empty() {
+            content.push_str("## Development Dependencies\n\n");
+            content.push_str("| Package | Version |\n");
+            content.push_str("|---------|----------|\n");
+            for (name, version) in development.iter().take(50) {
+                let ver_str = version.as_str().unwrap_or("");
+                content.push_str(&format!("| `{}` | `{}` |\n", name, ver_str));
+            }
+            if development.len() > 50 {
+                content.push_str(&format!("\n*... and {} more*\n\n", development.len() - 50));
+            } else {
+                content.push_str("\n");
+            }
+        }
+    }
+    
     content.push_str("## Dependency Graph\n\n");
     content.push_str("```mermaid\n");
     content.push_str(graph);
@@ -155,20 +210,171 @@ fn generate_dependencies_doc(_deps: &serde_json::Value, graph: &str) -> String {
     content
 }
 
-fn generate_security_doc(_security: &serde_json::Value) -> String {
-    String::from("# Security Audit\n\n*For detailed security information, use the `audit_security` tool.*\n")
+fn generate_security_doc(security: &serde_json::Value) -> String {
+    let mut content = String::from("# Security Audit\n\n");
+    
+    if let Some(risk_level) = security.get("riskLevel").and_then(|v| v.as_str()) {
+        content.push_str(&format!("## Risk Level: {}\n\n", risk_level.to_uppercase()));
+    }
+    
+    if let Some(summary) = security.get("summary") {
+        let critical = summary.get("critical").and_then(|v| v.as_u64()).unwrap_or(0);
+        let high = summary.get("high").and_then(|v| v.as_u64()).unwrap_or(0);
+        let medium = summary.get("medium").and_then(|v| v.as_u64()).unwrap_or(0);
+        let low = summary.get("low").and_then(|v| v.as_u64()).unwrap_or(0);
+        
+        content.push_str("## Summary\n\n");
+        content.push_str(&format!("- **Critical:** {}\n", critical));
+        content.push_str(&format!("- **High:** {}\n", high));
+        content.push_str(&format!("- **Medium:** {}\n", medium));
+        content.push_str(&format!("- **Low:** {}\n", low));
+        
+        if let Some(vulns) = security.get("vulnerabilities").and_then(|v| v.as_array()) {
+            let total = vulns.len();
+            content.push_str(&format!("- **Total Issues:** {}\n\n", total));
+            
+            if !vulns.is_empty() {
+                content.push_str("## Vulnerabilities\n\n");
+                content.push_str("| Package | Version | Severity | Description |\n");
+                content.push_str("|---------|---------|----------|-------------|\n");
+                for vuln in vulns.iter().take(100) {
+                    let pkg = vuln.get("package").and_then(|v| v.as_str()).unwrap_or("");
+                    let ver = vuln.get("version").and_then(|v| v.as_str()).unwrap_or("");
+                    let sev = vuln.get("severity").and_then(|v| v.as_str()).unwrap_or("");
+                    let desc = vuln.get("description").and_then(|v| v.as_str()).unwrap_or("");
+                    content.push_str(&format!("| `{}` | `{}` | {} | {} |\n", pkg, ver, sev, desc));
+                }
+                if vulns.len() > 100 {
+                    content.push_str(&format!("\n*... and {} more vulnerabilities*\n", vulns.len() - 100));
+                }
+            } else {
+                content.push_str("## Status\n\n✅ No known vulnerabilities found.\n");
+            }
+        }
+    } else {
+        content.push_str("*For detailed security information, use the `audit_security` tool.*\n");
+    }
+    
+    content
 }
 
-fn generate_licenses_doc(_licenses: &serde_json::Value) -> String {
-    String::from("# License Compliance\n\n*For detailed license information, use the `analyze_licenses` tool.*\n")
+fn generate_licenses_doc(licenses: &serde_json::Value) -> String {
+    let mut content = String::from("# License Compliance\n\n");
+    
+    if let Some(summary) = licenses.get("summary") {
+        let total = summary.get("totalPackages").and_then(|v| v.as_u64()).unwrap_or(0);
+        let unique = summary.get("uniqueLicenses").and_then(|v| v.as_u64()).unwrap_or(0);
+        let unknown = summary.get("unknownLicenses").and_then(|v| v.as_u64()).unwrap_or(0);
+        
+        content.push_str("## Summary\n\n");
+        content.push_str(&format!("- **Total Packages:** {}\n", total));
+        content.push_str(&format!("- **Unique Licenses:** {}\n", unique));
+        content.push_str(&format!("- **Unknown Licenses:** {}\n\n", unknown));
+    }
+    
+    if let Some(dist) = licenses.get("distribution").and_then(|v| v.as_array()) {
+        if !dist.is_empty() {
+            content.push_str("## License Distribution\n\n");
+            content.push_str("| License | Count | Percentage |\n");
+            content.push_str("|---------|-------|------------|\n");
+            let total = licenses.get("summary")
+                .and_then(|s| s.get("totalPackages"))
+                .and_then(|v| v.as_u64())
+                .unwrap_or(1) as f64;
+            for item in dist {
+                let license = item.get("license").and_then(|v| v.as_str()).unwrap_or("");
+                let count = item.get("count").and_then(|v| v.as_u64()).unwrap_or(0);
+                let pct = if total > 0.0 { (count as f64 / total) * 100.0 } else { 0.0 };
+                content.push_str(&format!("| {} | {} | {:.1}% |\n", license, count, pct));
+            }
+            content.push_str("\n");
+        }
+    }
+    
+    if let Some(issues) = licenses.get("compatibilityIssues").and_then(|v| v.as_array()) {
+        if !issues.is_empty() {
+            content.push_str("## Compatibility Issues\n\n");
+            for issue in issues {
+                if let Some(issue_str) = issue.as_str() {
+                    content.push_str(&format!("- {}\n", issue_str));
+                }
+            }
+            content.push_str("\n");
+        }
+    }
+    
+    if content == "# License Compliance\n\n" {
+        content.push_str("*For detailed license information, use the `analyze_licenses` tool.*\n");
+    }
+    
+    content
 }
 
-fn generate_architecture_doc(_psr4: &serde_json::Value, _namespaces: &serde_json::Value) -> String {
+fn generate_architecture_doc(psr4: &serde_json::Value, namespaces: &serde_json::Value) -> String {
     let mut content = String::from("# Architecture\n\n");
-    content.push_str("## PSR-4 Autoloading\n\n");
-    content.push_str("*For detailed PSR-4 information, use the `analyze_psr4` tool.*\n\n");
-    content.push_str("## Namespaces\n\n");
-    content.push_str("*For detailed namespace information, use the `detect_namespaces` tool.*\n");
+    
+    // Parse PSR-4 data
+    if let Some(stats) = psr4.get("stats") {
+        let mappings = stats.get("totalMappings").and_then(|v| v.as_u64()).unwrap_or(0);
+        let files = stats.get("totalFiles").and_then(|v| v.as_u64()).unwrap_or(0);
+        let valid = stats.get("validFiles").and_then(|v| v.as_u64()).unwrap_or(0);
+        let violations = stats.get("violationCount").and_then(|v| v.as_u64()).unwrap_or(0);
+        
+        content.push_str("## PSR-4 Autoloading\n\n");
+        content.push_str("### Summary\n\n");
+        content.push_str(&format!("- **Total Mappings:** {}\n", mappings));
+        content.push_str(&format!("- **Files Analyzed:** {}\n", files));
+        content.push_str(&format!("- **PSR-4 Compliant:** {}\n", valid));
+        content.push_str(&format!("- **Violations:** {}\n\n", violations));
+        
+        if let Some(mapping_list) = psr4.get("mappings").and_then(|v| v.as_array()) {
+            if !mapping_list.is_empty() {
+                content.push_str("### Mappings\n\n");
+                content.push_str("| Namespace Prefix | Directory |\n");
+                content.push_str("|------------------|-----------|\n");
+                for mapping in mapping_list.iter().take(20) {
+                    let ns = mapping.get("namespace").and_then(|v| v.as_str()).unwrap_or("");
+                    let paths = mapping.get("paths")
+                        .and_then(|v| v.as_array())
+                        .map(|arr| arr.iter()
+                            .filter_map(|p| p.as_str())
+                            .collect::<Vec<_>>()
+                            .join(", "))
+                        .unwrap_or_default();
+                    content.push_str(&format!("| `{}` | `{}` |\n", ns, paths));
+                }
+                if mapping_list.len() > 20 {
+                    content.push_str(&format!("\n*... and {} more mappings*\n", mapping_list.len() - 20));
+                }
+                content.push_str("\n");
+            }
+        }
+    } else {
+        content.push_str("## PSR-4 Autoloading\n\n");
+        content.push_str("*For detailed PSR-4 information, use the `analyze_psr4` tool.*\n\n");
+    }
+    
+    // Parse namespaces data
+    if let Some(ns_list) = namespaces.get("namespaces").and_then(|v| v.as_array()) {
+        content.push_str("## Namespaces\n\n");
+        if !ns_list.is_empty() {
+            content.push_str(&format!("Found **{}** namespaces:\n\n", ns_list.len()));
+            for ns in ns_list.iter().take(30) {
+                let ns_name = ns.get("namespace").and_then(|v| v.as_str()).unwrap_or("");
+                let files = ns.get("files").and_then(|v| v.as_array()).map(|a| a.len()).unwrap_or(0);
+                content.push_str(&format!("- `{}` ({} files)\n", ns_name, files));
+            }
+            if ns_list.len() > 30 {
+                content.push_str(&format!("\n*... and {} more namespaces*\n", ns_list.len() - 30));
+            }
+        } else {
+            content.push_str("*No namespaces detected.*\n");
+        }
+    } else {
+        content.push_str("## Namespaces\n\n");
+        content.push_str("*For detailed namespace information, use the `detect_namespaces` tool.*\n");
+    }
+    
     content
 }
 
