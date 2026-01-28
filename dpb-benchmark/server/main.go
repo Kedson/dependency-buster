@@ -9,12 +9,28 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"time"
+)
+
+var (
+	Version   = "dev"
+	BuildTime = "unknown"
+	GitCommit = "unknown"
 )
 
 func main() {
 	port := flag.Int("port", 8080, "Port to serve on")
 	open := flag.Bool("open", true, "Open browser automatically")
+	version := flag.Bool("version", false, "Show version information")
 	flag.Parse()
+
+	if *version {
+		fmt.Printf("dependency-buster Dashboard Server\n")
+		fmt.Printf("Version: %s\n", Version)
+		fmt.Printf("Build Time: %s\n", BuildTime)
+		fmt.Printf("Git Commit: %s\n", GitCommit)
+		os.Exit(0)
+	}
 
 	// Find dashboard directory (relative to this binary or workspace)
 	dashboardDir := findDashboardDir()
@@ -33,8 +49,10 @@ func main() {
 	fmt.Println("┌─────────────────────────────────────────────────────────┐")
 	fmt.Println("│  dependency-buster // Dashboard Server                  │")
 	fmt.Println("├─────────────────────────────────────────────────────────┤")
-	fmt.Printf("│  ▶ Serving: %-44s│\n", dashboardDir)
-	fmt.Printf("│  ▶ URL:     %-44s│\n", url)
+	fmt.Printf("│  ▶ Version:  %-42s│\n", Version)
+	fmt.Printf("│  ▶ Serving:  %-42s│\n", dashboardDir)
+	fmt.Printf("│  ▶ URL:      %-42s│\n", url)
+	fmt.Printf("│  ▶ Started:  %-42s│\n", time.Now().Format("2006-01-02 15:04:05"))
 	fmt.Println("│  ▶ Press Ctrl+C to stop                                 │")
 	fmt.Println("└─────────────────────────────────────────────────────────┘")
 	fmt.Println()

@@ -259,6 +259,72 @@ make install-air
 
 The server runs on `http://localhost:8080` by default.
 
+**Check if server is running:**
+```bash
+# Check port 8080
+lsof -ti:8080 && echo "Server is running" || echo "Server is not running"
+
+# Or check process
+ps aux | grep dashboard-server
+```
+
+---
+
+## Documentation Generation
+
+The `generate_mkdocs_docs` tool creates comprehensive documentation from your dependency analysis data.
+
+### Quick Start
+
+```bash
+# Generate docs (via Cursor IDE or CLI)
+@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo
+
+# Or via command line
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"/path/to/repo"}},"id":1}' | node dpb-mcp-typescript/build/server.js
+```
+
+### Viewing Generated Documentation
+
+**Option 1: MkDocs (Recommended)**
+```bash
+cd docs
+pip install mkdocs mkdocs-material
+mkdocs serve
+# Opens at http://127.0.0.1:8000
+```
+
+**Option 2: View Markdown Directly**
+```bash
+# Open in your editor
+code docs/index.md
+```
+
+**Option 3: HTML Output**
+```bash
+# Generate with format=html
+# Then open docs/index.html in browser
+```
+
+### When Documentation is Generated
+
+**Documentation does NOT regenerate automatically** on code changes. You need to:
+
+1. **Manual Generation**: Call `generate_mkdocs_docs` tool when needed
+2. **CI/CD Integration**: Add to your GitHub Actions/GitLab CI workflow:
+   ```yaml
+   - name: Generate Documentation
+     run: |
+       # Call generate_mkdocs_docs tool
+       # Commit docs/ directory to repository
+   ```
+3. **Pre-commit Hook**: Add a git hook to regenerate docs before commits
+4. **Release Workflow**: Generate docs as part of your release process
+
+**Note**: Documentation generation is **not** included in smoke tests or benchmarks by default. To add it:
+- Add `generate_mkdocs_docs` to benchmark tool list
+- Include it in smoke test suite
+
 ---
 
 ## CI/CD Integration
