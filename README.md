@@ -30,8 +30,27 @@ cd dependency-buster
 
 # Build all implementations
 ./build-all.sh
+```
 
-# Or build individually:
+**Repository Selection:**
+
+The build script will prompt you to choose a test repository:
+
+```bash
+# Interactive mode (will prompt)
+./build-all.sh
+# Enter repository URL or press Enter for default (AzuraCast)
+
+# Non-interactive mode (uses environment variable)
+TEST_REPO_URL=https://github.com/myorg/myproject.git ./build-all.sh
+
+# Non-interactive mode (uses default)
+echo "" | ./build-all.sh  # Pipes empty input to auto-select default
+```
+
+**Or build individually:**
+
+```bash
 # TypeScript
 cd dpb-mcp-typescript && npm install && npm run build
 
