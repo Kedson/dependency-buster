@@ -124,6 +124,9 @@ func main() {
 	fmt.Printf("│  ▶ Serving:  %-42s│\n", dashboardDir)
 	fmt.Printf("│  ▶ URL:      %-42s│\n", url)
 	fmt.Printf("│  ▶ Started:  %-42s│\n", time.Now().Format("2006-01-02 15:04:05"))
+	if len(docsDirs) > 0 {
+		fmt.Println("│  ▶ Docs:     Checking for documentation...              │")
+	}
 	fmt.Println("│  ▶ Press Ctrl+C to stop                                 │")
 	fmt.Println("└─────────────────────────────────────────────────────────┘")
 	fmt.Println()
