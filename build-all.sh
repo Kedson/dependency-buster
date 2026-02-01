@@ -268,9 +268,34 @@ if [ -d "dpb-benchmark" ]; then
 fi
 echo ""
 
+# Build Dashboard Server
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${YELLOW}  Step 8: Building Dashboard Server${NC}"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+
+if [ -d "dpb-benchmark" ]; then
+    cd dpb-benchmark
+    echo -e "${BLUE}🏗️  Building dashboard server...${NC}"
+    if make build > /dev/null 2>&1; then
+        if [ -f "server/dashboard-server" ]; then
+            SIZE=$(du -sh server/dashboard-server | cut -f1)
+            echo -e "${GREEN}✓${NC} Dashboard server built (binary: $SIZE)"
+        else
+            echo -e "${YELLOW}⚠️${NC}  Dashboard server build completed but binary not found"
+        fi
+    else
+        echo -e "${YELLOW}⚠️${NC}  Dashboard server build failed (optional)"
+    fi
+    cd ..
+else
+    echo -e "${YELLOW}⚠️${NC}  Benchmark directory not found, skipping dashboard server"
+fi
+echo ""
+
 # Quick smoke tests
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}  Step 8: Running Quick Tests${NC}"
+echo -e "${YELLOW}  Step 9: Running Quick Tests${NC}"
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
@@ -351,27 +376,125 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
     echo -e "${PURPLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
     
-    # Ask to open dashboard
-    DASHBOARD_PATH="$WORKSPACE/dpb-benchmark/dashboard/index.html"
-    if [ -f "$DASHBOARD_PATH" ]; then
-        echo -e "${CYAN}Would you like to open the dashboard in your browser? [Y/n]${NC}"
-        read -r -t 10 response
-        response=${response:-Y}
-        if [[ "$response" =~ ^[Yy]$ ]]; then
-            echo -e "${GREEN}Opening dashboard...${NC}"
-            if command -v open &> /dev/null; then
-                open "$DASHBOARD_PATH"
-            elif command -v xdg-open &> /dev/null; then
-                xdg-open "$DASHBOARD_PATH"
-            elif command -v start &> /dev/null; then
-                start "$DASHBOARD_PATH"
+    # Dashboard and Documentation Setup
+    echo ""
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${CYAN}  Dashboard & Documentation Setup${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "${YELLOW}The dashboard server allows you to:${NC}"
+    echo "  • View interactive analysis dashboard"
+    echo "  • Serve generated documentation"
+    echo "  • Access at http://localhost:8080"
+    echo ""
+    echo -e "${CYAN}Would you like to set up dashboard and documentation visualization? [Y/n]${NC}"
+    read -r -t 15 response
+    response=${response:-Y}
+    
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        # Check if dashboard server is built
+        DASHBOARD_SERVER="$WORKSPACE/dpb-benchmark/server/dashboard-server"
+        if [ ! -f "$DASHBOARD_SERVER" ]; then
+            echo -e "${YELLOW}⚠️  Dashboard server not found. Building now...${NC}"
+            cd "$WORKSPACE/dpb-benchmark"
+            make build > /dev/null 2>&1
+            cd "$WORKSPACE"
+        fi
+        
+        # Check if docs exist, if not generate them
+        DOCS_DIR="$WORKSPACE/docs"
+        if [ ! -f "$DOCS_DIR/index.md" ]; then
+            echo -e "${BLUE}📚 Generating documentation...${NC}"
+            # Try to generate docs using TypeScript server
+            if [ -f "dpb-mcp-typescript/build/server.js" ]; then
+                DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_DIR'","include_changelog":true,"format":"mkdocs"}},"id":1}'
+                echo "$DOCS_REQUEST" | node dpb-mcp-typescript/build/server.js > /dev/null 2>&1
+                if [ -f "$DOCS_DIR/index.md" ]; then
+                    echo -e "${GREEN}✓${NC} Documentation generated"
+                fi
+            fi
+        fi
+        
+        # Check if MkDocs is available for HTML conversion
+        if command -v mkdocs &> /dev/null && [ -f "$DOCS_DIR/mkdocs.yml" ]; then
+            echo -e "${BLUE}🔨 Converting documentation to HTML...${NC}"
+            cd "$DOCS_DIR"
+            mkdocs build --quiet 2>/dev/null
+            if [ -d "site" ]; then
+                echo -e "${GREEN}✓${NC} HTML documentation generated"
+                # Copy HTML to docs root for easy access
+                cp -r site/* . 2>/dev/null || true
+            fi
+            cd "$WORKSPACE"
+        fi
+        
+        # Ask to start dashboard server
+        echo ""
+        echo -e "${CYAN}Would you like to start the dashboard server now? [Y/n]${NC}"
+        read -r -t 10 server_response
+        server_response=${server_response:-Y}
+        
+        if [[ "$server_response" =~ ^[Yy]$ ]]; then
+            # Check if port 8080 is already in use
+            if lsof -ti:8080 > /dev/null 2>&1; then
+                echo -e "${YELLOW}⚠️  Port 8080 is already in use.${NC}"
+                echo -e "${CYAN}Would you like to open the dashboard in your browser anyway? [Y/n]${NC}"
+                read -r -t 10 open_response
+                open_response=${open_response:-Y}
+                if [[ "$open_response" =~ ^[Yy]$ ]]; then
+                    if command -v open &> /dev/null; then
+                        open "http://localhost:8080"
+                    elif command -v xdg-open &> /dev/null; then
+                        xdg-open "http://localhost:8080"
+                    fi
+                fi
             else
-                echo -e "${YELLOW}Could not auto-open. Please open manually:${NC}"
-                echo "  $DASHBOARD_PATH"
+                echo -e "${GREEN}🚀 Starting dashboard server...${NC}"
+                echo -e "${DIM}Server will run in the background. Press Ctrl+C to stop.${NC}"
+                echo ""
+                cd "$WORKSPACE/dpb-benchmark"
+                ./server/dashboard-server -open=true &
+                SERVER_PID=$!
+                sleep 2
+                echo -e "${GREEN}✓${NC} Dashboard server started (PID: $SERVER_PID)"
+                echo -e "${GREEN}✓${NC} Dashboard available at: ${BOLD}http://localhost:8080${NC}"
+                echo ""
+                echo -e "${DIM}To stop the server later: kill $SERVER_PID${NC}"
+                echo -e "${DIM}Or use: lsof -ti:8080 | xargs kill${NC}"
+                cd "$WORKSPACE"
             fi
         else
-            echo -e "${DIM}Dashboard saved to: $DASHBOARD_PATH${NC}"
+            echo ""
+            echo -e "${BLUE}To start the dashboard server later:${NC}"
+            echo "  cd dpb-benchmark"
+            echo "  make serve"
+            echo ""
+            echo -e "${BLUE}Or open dashboard directly:${NC}"
+            DASHBOARD_PATH="$WORKSPACE/dpb-benchmark/dashboard/index.html"
+            if [ -f "$DASHBOARD_PATH" ]; then
+                echo -e "${CYAN}Would you like to open the dashboard file now? [Y/n]${NC}"
+                read -r -t 10 open_response
+                open_response=${open_response:-Y}
+                if [[ "$open_response" =~ ^[Yy]$ ]]; then
+                    if command -v open &> /dev/null; then
+                        open "$DASHBOARD_PATH"
+                    elif command -v xdg-open &> /dev/null; then
+                        xdg-open "$DASHBOARD_PATH"
+                    elif command -v start &> /dev/null; then
+                        start "$DASHBOARD_PATH"
+                    fi
+                fi
+            fi
         fi
+    else
+        echo ""
+        echo -e "${DIM}Dashboard setup skipped.${NC}"
+        echo -e "${BLUE}To set up later, see:${NC}"
+        echo "  • README.md - Dashboard section"
+        echo "  • dpb-benchmark/README.md"
+        echo ""
+        echo -e "${BLUE}Quick start:${NC}"
+        echo "  cd dpb-benchmark && make serve"
     fi
 else
     echo -e "${RED}✗ Benchmark script not found${NC}"
