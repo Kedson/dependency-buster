@@ -80,15 +80,30 @@ pub fn generate_mkdocs_docs(options: MkDocsOptions) -> Result<String> {
     let licenses_content = generate_licenses_doc(&licenses);
     let architecture_content = generate_architecture_doc(&psr4, &namespaces);
 
+    // Generate HTML if format is html (before writing markdown files, so we can reuse the strings)
+    if format == "html" {
+        let html_content = generate_html_site(
+            &project_name,
+            &project_desc,
+            &index_content,
+            &dependencies_content,
+            &security_content,
+            &licenses_content,
+            &architecture_content,
+            &changelog_content,
+        );
+        fs::write(format!("{}/index.html", output_dir), html_content)?;
+    }
+
     // Write markdown files
-    fs::write(format!("{}/index.md", output_dir), index_content)?;
-    fs::write(format!("{}/dependencies.md", output_dir), dependencies_content)?;
-    fs::write(format!("{}/security.md", output_dir), security_content)?;
-    fs::write(format!("{}/licenses.md", output_dir), licenses_content)?;
-    fs::write(format!("{}/architecture.md", output_dir), architecture_content)?;
+    fs::write(format!("{}/index.md", output_dir), &index_content)?;
+    fs::write(format!("{}/dependencies.md", output_dir), &dependencies_content)?;
+    fs::write(format!("{}/security.md", output_dir), &security_content)?;
+    fs::write(format!("{}/licenses.md", output_dir), &licenses_content)?;
+    fs::write(format!("{}/architecture.md", output_dir), &architecture_content)?;
     
     if !changelog_content.is_empty() {
-        fs::write(format!("{}/changelog.md", output_dir), changelog_content)?;
+        fs::write(format!("{}/changelog.md", output_dir), &changelog_content)?;
     }
 
     // Generate mkdocs.yml if format is mkdocs
@@ -473,4 +488,145 @@ fn generate_mkdocs_config(site_name: &str, site_description: &str, include_chang
     }
 
     config
+}
+
+fn generate_html_site(
+    site_name: &str,
+    site_description: &str,
+    index: &str,
+    dependencies: &str,
+    security: &str,
+    licenses: &str,
+    architecture: &str,
+    changelog: &str,
+) -> String {
+    // Escape markdown content for JavaScript strings
+    let escape_js = |s: &str| -> String {
+        s.replace('\\', "\\\\")
+         .replace('`', "\\`")
+         .replace('$', "\\$")
+         .replace('\n', "\\n")
+         .replace('\r', "")
+    };
+    
+    let index_escaped = escape_js(index);
+    let deps_escaped = escape_js(dependencies);
+    let sec_escaped = escape_js(security);
+    let lic_escaped = escape_js(licenses);
+    let arch_escaped = escape_js(architecture);
+    
+    let changelog_nav = if !changelog.is_empty() {
+        "\n    <a href=\"#changelog\">Changelog</a>"
+    } else {
+        ""
+    };
+    
+    let changelog_section = if !changelog.is_empty() {
+        "\n  <div id=\"changelog\" class=\"section\">\n    <h2>Changelog</h2>\n    <div id=\"changelog-content\"></div>\n  </div>"
+    } else {
+        ""
+    };
+    
+    // Build HTML string piece by piece to avoid format! macro issues with nested {}
+    let mut html = String::new();
+    html.push_str("<!DOCTYPE html>\n");
+    html.push_str("<html lang=\"en\">\n");
+    html.push_str("<head>\n");
+    html.push_str("  <meta charset=\"UTF-8\">\n");
+    html.push_str("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+    html.push_str(&format!("  <title>{}</title>\n", site_name));
+    html.push_str("  <style>\n");
+    html.push_str("    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; line-height: 1.6; }\n");
+    html.push_str("    nav { background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px; }\n");
+    html.push_str("    nav a { margin-right: 20px; text-decoration: none; color: #0066cc; font-weight: 500; }\n");
+    html.push_str("    nav a:hover { text-decoration: underline; }\n");
+    html.push_str("    h1 { color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }\n");
+    html.push_str("    h2 { color: #555; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }\n");
+    html.push_str("    h3 { color: #666; margin-top: 20px; }\n");
+    html.push_str("    code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }\n");
+    html.push_str("    pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; border-left: 3px solid #0066cc; }\n");
+    html.push_str("    table { border-collapse: collapse; width: 100%; margin: 20px 0; }\n");
+    html.push_str("    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\n");
+    html.push_str("    th { background: #f5f5f5; font-weight: 600; }\n");
+    html.push_str("    tr:nth-child(even) { background: #fafafa; }\n");
+    html.push_str("    a { color: #0066cc; }\n");
+    html.push_str("    .section { margin-bottom: 40px; }\n");
+    html.push_str("    .meta { color: #666; font-size: 0.9em; margin-bottom: 20px; }\n");
+    html.push_str("  </style>\n");
+    html.push_str("  <script src=\"https://cdn.jsdelivr.net/npm/marked/marked.min.js\"></script>\n");
+    html.push_str("</head>\n");
+    html.push_str("<body>\n");
+    html.push_str("  <nav>\n");
+    html.push_str("    <a href=\"#index\">Home</a>\n");
+    html.push_str("    <a href=\"#dependencies\">Dependencies</a>\n");
+    html.push_str("    <a href=\"#security\">Security</a>\n");
+    html.push_str("    <a href=\"#licenses\">Licenses</a>\n");
+    html.push_str("    <a href=\"#architecture\">Architecture</a>");
+    html.push_str(changelog_nav);
+    html.push_str("\n  </nav>\n");
+    html.push_str("  \n");
+    html.push_str(&format!("  <div id=\"index\" class=\"section\">\n    <h1>{}</h1>\n    <p class=\"meta\">{}</p>\n    <div id=\"index-content\"></div>\n  </div>\n", site_name, site_description));
+    html.push_str("  \n");
+    html.push_str("  <div id=\"dependencies\" class=\"section\">\n    <h2>Dependencies</h2>\n    <div id=\"dependencies-content\"></div>\n  </div>\n");
+    html.push_str("  \n");
+    html.push_str("  <div id=\"security\" class=\"section\">\n    <h2>Security</h2>\n    <div id=\"security-content\"></div>\n  </div>\n");
+    html.push_str("  \n");
+    html.push_str("  <div id=\"licenses\" class=\"section\">\n    <h2>Licenses</h2>\n    <div id=\"licenses-content\"></div>\n  </div>\n");
+    html.push_str("  \n");
+    html.push_str("  <div id=\"architecture\" class=\"section\">\n    <h2>Architecture</h2>\n    <div id=\"architecture-content\"></div>\n  </div>");
+    html.push_str(changelog_section);
+    html.push_str("\n  \n");
+    html.push_str("  <script>\n");
+    html.push_str("    function markdownToHTML(md) {\n");
+    html.push_str("      if (typeof marked !== 'undefined') {\n");
+    html.push_str("        return marked.parse(md);\n");
+    html.push_str("      }\n");
+    html.push_str("      return md\n");
+    html.push_str("        .replace(/^# (.*$)/gim, '<h1>$1</h1>')\n");
+    html.push_str("        .replace(/^## (.*$)/gim, '<h2>$1</h2>')\n");
+    html.push_str("        .replace(/^### (.*$)/gim, '<h3>$1</h3>')\n");
+    html.push_str("        .replace(/\\*\\*(.*?)\\*\\*/gim, '<strong>$1</strong>')\n");
+    html.push_str("        .replace(/\\*(.*?)\\*/gim, '<em>$1</em>')\n");
+    html.push_str("        .replace(/`([^`]+)`/gim, '<code>$1</code>')\n");
+    html.push_str("        .replace(/\\n/gim, '<br>');\n");
+    html.push_str("    }\n");
+    html.push_str("    \n");
+    html.push_str(&format!("    const indexMD = \"{}\";\n", index_escaped.replace('"', "\\\"")));
+    html.push_str(&format!("    const depsMD = \"{}\";\n", deps_escaped.replace('"', "\\\"")));
+    html.push_str(&format!("    const secMD = \"{}\";\n", sec_escaped.replace('"', "\\\"")));
+    html.push_str(&format!("    const licMD = \"{}\";\n", lic_escaped.replace('"', "\\\"")));
+    html.push_str(&format!("    const archMD = \"{}\";\n", arch_escaped.replace('"', "\\\"")));
+    
+    if !changelog.is_empty() {
+        let changelog_escaped = escape_js(changelog).replace('"', "\\\"");
+        html.push_str(&format!(
+            r#"
+    const changelogMD = "{}";
+    
+    document.getElementById('index-content').innerHTML = markdownToHTML(indexMD);
+    document.getElementById('dependencies-content').innerHTML = markdownToHTML(depsMD);
+    document.getElementById('security-content').innerHTML = markdownToHTML(secMD);
+    document.getElementById('licenses-content').innerHTML = markdownToHTML(licMD);
+    document.getElementById('architecture-content').innerHTML = markdownToHTML(archMD);
+    document.getElementById('changelog-content').innerHTML = markdownToHTML(changelogMD);
+  </script>
+</body>
+</html>"#,
+            changelog_escaped
+        ));
+    } else {
+        html.push_str(
+            r#"
+    document.getElementById('index-content').innerHTML = markdownToHTML(indexMD);
+    document.getElementById('dependencies-content').innerHTML = markdownToHTML(depsMD);
+    document.getElementById('security-content').innerHTML = markdownToHTML(secMD);
+    document.getElementById('licenses-content').innerHTML = markdownToHTML(licMD);
+    document.getElementById('architecture-content').innerHTML = markdownToHTML(archMD);
+  </script>
+</body>
+</html>"#,
+        );
+    }
+    
+    html
 }

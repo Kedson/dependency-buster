@@ -401,34 +401,68 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
             cd "$WORKSPACE"
         fi
         
-        # Check if docs exist, if not generate them
-        DOCS_DIR="$WORKSPACE/docs"
-        if [ ! -f "$DOCS_DIR/index.md" ]; then
-            echo -e "${BLUE}📚 Generating documentation...${NC}"
-            # Try to generate docs using TypeScript server
-            if [ -f "dpb-mcp-typescript/build/server.js" ]; then
-                DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_DIR'","include_changelog":true,"format":"mkdocs"}},"id":1}'
-                echo "$DOCS_REQUEST" | node dpb-mcp-typescript/build/server.js > /dev/null 2>&1
-                if [ -f "$DOCS_DIR/index.md" ]; then
-                    echo -e "${GREEN}✓${NC} Documentation generated"
+        # Generate documentation with all three implementations
+        echo -e "${BLUE}📚 Generating documentation with all implementations (HTML format)...${NC}"
+        echo -e "${DIM}  No Python required - using native HTML generation${NC}"
+        echo ""
+        
+        DOCS_GENERATED=0
+        
+        # TypeScript implementation
+        DOCS_TS_DIR="$WORKSPACE/docs-typescript"
+        if [ -f "dpb-mcp-typescript/build/server.js" ]; then
+            echo -e "${BLUE}  Generating with TypeScript...${NC}"
+            DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_TS_DIR'","include_changelog":true,"format":"html"}},"id":1}'
+            if echo "$DOCS_REQUEST" | node dpb-mcp-typescript/build/server.js > /dev/null 2>&1; then
+                if [ -f "$DOCS_TS_DIR/index.html" ]; then
+                    echo -e "${GREEN}    ✓${NC} TypeScript docs: $DOCS_TS_DIR/index.html"
+                    DOCS_GENERATED=$((DOCS_GENERATED + 1))
                 fi
             fi
         fi
         
-        # Check if MkDocs is available for HTML conversion
-        if command -v mkdocs &> /dev/null && [ -f "$DOCS_DIR/mkdocs.yml" ]; then
-            echo -e "${BLUE}🔨 Converting documentation to HTML...${NC}"
-            cd "$DOCS_DIR"
-            mkdocs build --quiet 2>/dev/null
-            if [ -d "site" ]; then
-                echo -e "${GREEN}✓${NC} HTML documentation generated"
-                # Copy HTML to docs root for easy access
-                cp -r site/* . 2>/dev/null || true
+        # Go implementation
+        DOCS_GO_DIR="$WORKSPACE/docs-go"
+        if [ -f "dpb-mcp-go/build/dpb-mcp" ]; then
+            echo -e "${BLUE}  Generating with Go...${NC}"
+            DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_GO_DIR'","include_changelog":true,"format":"html"}},"id":1}'
+            if echo "$DOCS_REQUEST" | dpb-mcp-go/build/dpb-mcp > /dev/null 2>&1; then
+                if [ -f "$DOCS_GO_DIR/index.html" ]; then
+                    echo -e "${GREEN}    ✓${NC} Go docs: $DOCS_GO_DIR/index.html"
+                    DOCS_GENERATED=$((DOCS_GENERATED + 1))
+                fi
             fi
-            cd "$WORKSPACE"
         fi
         
-        # Ask to start dashboard server
+        # Rust implementation
+        DOCS_RUST_DIR="$WORKSPACE/docs-rust"
+        if [ -f "dpb-mcp-rust/target/release/dpb-mcp" ]; then
+            echo -e "${BLUE}  Generating with Rust...${NC}"
+            DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_RUST_DIR'","include_changelog":true,"format":"html"}},"id":1}'
+            if echo "$DOCS_REQUEST" | dpb-mcp-rust/target/release/dpb-mcp > /dev/null 2>&1; then
+                if [ -f "$DOCS_RUST_DIR/index.html" ]; then
+                    echo -e "${GREEN}    ✓${NC} Rust docs: $DOCS_RUST_DIR/index.html"
+                    DOCS_GENERATED=$((DOCS_GENERATED + 1))
+                fi
+            fi
+        fi
+        
+        echo ""
+        if [ $DOCS_GENERATED -gt 0 ]; then
+            echo -e "${GREEN}✓${NC} Documentation generated with $DOCS_GENERATED implementation(s)"
+            echo -e "${DIM}  • TypeScript: docs-typescript/index.html${NC}"
+            echo -e "${DIM}  • Go:         docs-go/index.html${NC}"
+            echo -e "${DIM}  • Rust:       docs-rust/index.html${NC}"
+            echo ""
+            echo -e "${CYAN}💡 To view docs:${NC}"
+            echo -e "${DIM}  • Open HTML files directly in browser${NC}"
+            echo -e "${DIM}  • Or use dashboard server to serve them${NC}"
+        else
+            echo -e "${YELLOW}⚠️${NC}  No documentation generated (implementations may not be built)"
+        fi
+        echo ""
+        
+        # Ask to start dashboard server or open docs
         echo ""
         echo -e "${CYAN}Would you like to start the dashboard server now? [Y/n]${NC}"
         read -r -t 10 server_response
@@ -464,26 +498,57 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
                 cd "$WORKSPACE"
             fi
         else
+            # Offer to open docs HTML files directly
+            echo ""
+            if [ $DOCS_GENERATED -gt 0 ]; then
+                echo -e "${CYAN}Would you like to open generated documentation in your browser? [Y/n]${NC}"
+                read -r -t 10 docs_response
+                docs_response=${docs_response:-Y}
+                if [[ "$docs_response" =~ ^[Yy]$ ]]; then
+                    # Open first available docs
+                    if [ -f "$DOCS_TS_DIR/index.html" ]; then
+                        if command -v open &> /dev/null; then
+                            open "$DOCS_TS_DIR/index.html"
+                        elif command -v xdg-open &> /dev/null; then
+                            xdg-open "$DOCS_TS_DIR/index.html"
+                        elif command -v start &> /dev/null; then
+                            start "$DOCS_TS_DIR/index.html"
+                        fi
+                        echo -e "${GREEN}✓${NC} Opened TypeScript docs"
+                    elif [ -f "$DOCS_GO_DIR/index.html" ]; then
+                        if command -v open &> /dev/null; then
+                            open "$DOCS_GO_DIR/index.html"
+                        elif command -v xdg-open &> /dev/null; then
+                            xdg-open "$DOCS_GO_DIR/index.html"
+                        elif command -v start &> /dev/null; then
+                            start "$DOCS_GO_DIR/index.html"
+                        fi
+                        echo -e "${GREEN}✓${NC} Opened Go docs"
+                    elif [ -f "$DOCS_RUST_DIR/index.html" ]; then
+                        if command -v open &> /dev/null; then
+                            open "$DOCS_RUST_DIR/index.html"
+                        elif command -v xdg-open &> /dev/null; then
+                            xdg-open "$DOCS_RUST_DIR/index.html"
+                        elif command -v start &> /dev/null; then
+                            start "$DOCS_RUST_DIR/index.html"
+                        fi
+                        echo -e "${GREEN}✓${NC} Opened Rust docs"
+                    fi
+                fi
+            fi
+            
             echo ""
             echo -e "${BLUE}To start the dashboard server later:${NC}"
             echo "  cd dpb-benchmark"
             echo "  make serve"
             echo ""
-            echo -e "${BLUE}Or open dashboard directly:${NC}"
+            echo -e "${BLUE}Or open dashboard/docs directly:${NC}"
             DASHBOARD_PATH="$WORKSPACE/dpb-benchmark/dashboard/index.html"
             if [ -f "$DASHBOARD_PATH" ]; then
-                echo -e "${CYAN}Would you like to open the dashboard file now? [Y/n]${NC}"
-                read -r -t 10 open_response
-                open_response=${open_response:-Y}
-                if [[ "$open_response" =~ ^[Yy]$ ]]; then
-                    if command -v open &> /dev/null; then
-                        open "$DASHBOARD_PATH"
-                    elif command -v xdg-open &> /dev/null; then
-                        xdg-open "$DASHBOARD_PATH"
-                    elif command -v start &> /dev/null; then
-                        start "$DASHBOARD_PATH"
-                    fi
-                fi
+                echo "  Dashboard: $DASHBOARD_PATH"
+            fi
+            if [ $DOCS_GENERATED -gt 0 ]; then
+                echo "  Docs: docs-typescript/index.html, docs-go/index.html, docs-rust/index.html"
             fi
         fi
     else

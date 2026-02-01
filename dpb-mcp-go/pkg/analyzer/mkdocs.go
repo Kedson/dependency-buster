@@ -113,6 +113,14 @@ func GenerateMkDocsDocs(options MkDocsOptions) (string, error) {
 		}
 	}
 
+	// Generate HTML if format is html
+	if options.Format == "html" {
+		htmlContent := generateHTMLSite(projectName, projectDesc, indexContent, dependenciesContent, securityContent, licensesContent, architectureContent, changelogContent)
+		if err := os.WriteFile(filepath.Join(options.OutputDir, "index.html"), []byte(htmlContent), 0644); err != nil {
+			return "", err
+		}
+	}
+
 	return fmt.Sprintf("Documentation generated successfully in %s", options.OutputDir), nil
 }
 
@@ -497,4 +505,126 @@ func generateMkDocsConfig(siteName, siteDescription string, includeChangelog boo
 	}
 
 	return sb.String()
+}
+
+func generateHTMLSite(siteName, siteDescription, index, dependencies, security, licenses, architecture, changelog string) string {
+	// Escape markdown content for JavaScript strings
+	escapeJS := func(s string) string {
+		return strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(s, "\\", "\\\\"), "`", "\\`"), "$", "\\$"), "\n", "\\n")
+	}
+	
+	indexEscaped := escapeJS(index)
+	depsEscaped := escapeJS(dependencies)
+	secEscaped := escapeJS(security)
+	licEscaped := escapeJS(licenses)
+	archEscaped := escapeJS(architecture)
+	
+	changelogNav := ""
+	changelogSection := ""
+	changelogScript := ""
+	if changelog != "" {
+		changelogNav = "\n    <a href=\"#changelog\">Changelog</a>"
+		changelogSection = `
+  <div id="changelog" class="section">
+    <h2>Changelog</h2>
+    <div id="changelog-content"></div>
+  </div>`
+		changelogEscaped := escapeJS(changelog)
+		changelogScript = fmt.Sprintf(`
+    const changelogMD = "%s";
+    document.getElementById('changelog-content').innerHTML = markdownToHTML(changelogMD);`, changelogEscaped)
+	}
+	
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>%s</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+    nav { background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    nav a { margin-right: 20px; text-decoration: none; color: #0066cc; font-weight: 500; }
+    nav a:hover { text-decoration: underline; }
+    h1 { color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
+    h2 { color: #555; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+    h3 { color: #666; margin-top: 20px; }
+    code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+    pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; border-left: 3px solid #0066cc; }
+    table { border-collapse: collapse; width: 100%%; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f5f5f5; font-weight: 600; }
+    tr:nth-child(even) { background: #fafafa; }
+    a { color: #0066cc; }
+    .section { margin-bottom: 40px; }
+    .meta { color: #666; font-size: 0.9em; margin-bottom: 20px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <nav>
+    <a href="#index">Home</a>
+    <a href="#dependencies">Dependencies</a>
+    <a href="#security">Security</a>
+    <a href="#licenses">Licenses</a>
+    <a href="#architecture">Architecture</a>%s
+  </nav>
+  
+  <div id="index" class="section">
+    <h1>%s</h1>
+    <p class="meta">%s</p>
+    <div id="index-content"></div>
+  </div>
+  
+  <div id="dependencies" class="section">
+    <h2>Dependencies</h2>
+    <div id="dependencies-content"></div>
+  </div>
+  
+  <div id="security" class="section">
+    <h2>Security</h2>
+    <div id="security-content"></div>
+  </div>
+  
+  <div id="licenses" class="section">
+    <h2>Licenses</h2>
+    <div id="licenses-content"></div>
+  </div>
+  
+  <div id="architecture" class="section">
+    <h2>Architecture</h2>
+    <div id="architecture-content"></div>
+  </div>%s
+  
+  <script>
+    function markdownToHTML(md) {
+      if (typeof marked !== 'undefined') {
+        return marked.parse(md);
+      }
+      return md
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/\\*\\*(.*?)\\*\\*/gim, '<strong>$1</strong>')
+        .replace(/\\*(.*?)\\*/gim, '<em>$1</em>')
+        .replace(/\x60([^\x60]+)\x60/gim, '<code>$1</code>')
+        .replace(/\\n/gim, '<br>');
+    }
+    
+    const indexMD = "%s";
+    const depsMD = "%s";
+    const secMD = "%s";
+    const licMD = "%s";
+    const archMD = "%s";%s
+    
+    document.getElementById('index-content').innerHTML = markdownToHTML(indexMD);
+    document.getElementById('dependencies-content').innerHTML = markdownToHTML(depsMD);
+    document.getElementById('security-content').innerHTML = markdownToHTML(secMD);
+    document.getElementById('licenses-content').innerHTML = markdownToHTML(licMD);
+    document.getElementById('architecture-content').innerHTML = markdownToHTML(archMD);%s
+  </script>
+</body>
+</html>`, siteName, changelogNav, siteName, siteDescription, changelogSection, indexEscaped, depsEscaped, secEscaped, licEscaped, archEscaped, changelogScript, changelogScript)
+	
+	return html
 }
