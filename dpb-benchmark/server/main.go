@@ -128,20 +128,30 @@ func main() {
 	fmt.Println()
 
 	// Start HTTP server in goroutine
-	serverStarted := make(chan bool, 1)
+	serverReady := make(chan bool, 1)
 	go func() {
-		serverStarted <- true
+		// Start server
+		serverReady <- true
 		if err := http.ListenAndServe(addr, nil); err != nil {
 			log.Fatal(err)
 		}
 	}()
 
-	// Wait for server to start, then open browser
+	// Wait for server to start, then verify it's listening before opening browser
 	if *open {
-		<-serverStarted
-		// Give server a moment to actually start listening
-		time.Sleep(300 * time.Millisecond)
-		openBrowser(url)
+		<-serverReady
+		// Wait a bit and verify server is actually listening
+		time.Sleep(500 * time.Millisecond)
+		// Try to connect to verify server is up
+		resp, err := http.Get(url)
+		if err == nil {
+			resp.Body.Close()
+			openBrowser(url)
+		} else {
+			// Server might still be starting, wait a bit more
+			time.Sleep(500 * time.Millisecond)
+			openBrowser(url)
+		}
 	}
 
 	// Block forever to keep server running
