@@ -2248,6 +2248,8 @@ code docs-rust/index.md</code></pre>
                 </div>
             `;
             
+            // Ensure modal is visible (remove any existing visible class first, then add it)
+            modal.classList.remove('visible');
             setTimeout(() => modal.classList.add('visible'), 10);
         }
         
