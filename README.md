@@ -274,15 +274,43 @@ ps aux | grep dashboard-server
 
 The `generate_mkdocs_docs` tool creates comprehensive documentation from your dependency analysis data.
 
-### Quick Start
+### Manual Usage
 
+**Via Cursor IDE (Recommended):**
 ```bash
-# Generate docs (via Cursor IDE or CLI)
 @dependency-buster generate_mkdocs_docs repo_path=/path/to/repo
-
-# Or via command line
-echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"/path/to/repo"}},"id":1}' | node dpb-mcp-typescript/build/server.js
 ```
+
+**With Options:**
+```bash
+@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo output_dir=./docs include_changelog=true format=mkdocs site_name="My Project" site_description="Project Documentation"
+```
+
+**Via Command Line (TypeScript):**
+```bash
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"/path/to/repo","output_dir":"./docs","include_changelog":true,"format":"mkdocs"}},"id":1}' | node dpb-mcp-typescript/build/server.js
+```
+
+**Via Command Line (Go):**
+```bash
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"/path/to/repo","output_dir":"./docs"}},"id":1}' | ./dpb-mcp-go/build/dpb-mcp
+```
+
+**Via Command Line (Rust):**
+```bash
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"/path/to/repo","output_dir":"./docs"}},"id":1}' | ./dpb-mcp-rust/target/release/dpb-mcp
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `repo_path` | string | **required** | Absolute path to repository |
+| `output_dir` | string | `docs/` | Output directory for generated documentation |
+| `include_changelog` | boolean | `true` | Include dependency changelog based on snapshots |
+| `format` | string | `mkdocs` | Output format: `mkdocs`, `html`, or `markdown` |
+| `site_name` | string | auto-detected | Site name for mkdocs.yml |
+| `site_description` | string | auto-detected | Site description for mkdocs.yml |
 
 ### Viewing Generated Documentation
 
@@ -308,22 +336,39 @@ code docs/index.md
 
 ### When Documentation is Generated
 
-**Documentation does NOT regenerate automatically** on code changes. You need to:
+**Auto-Generation (First Run):**
+- When the dashboard server starts for the first time, documentation is automatically generated with all available implementations (TypeScript, Go, Rust)
+- This happens only once - if `docs/index.md` already exists, auto-generation is skipped
+- Benchmark results for all three implementations are displayed in the console
 
-1. **Manual Generation**: Call `generate_mkdocs_docs` tool when needed
-2. **CI/CD Integration**: Add to your GitHub Actions/GitLab CI workflow:
-   ```yaml
-   - name: Generate Documentation
-     run: |
-       # Call generate_mkdocs_docs tool
-       # Commit docs/ directory to repository
-   ```
-3. **Pre-commit Hook**: Add a git hook to regenerate docs before commits
-4. **Release Workflow**: Generate docs as part of your release process
+**Manual Generation:**
+Use the `@dependency-buster generate_mkdocs_docs` command whenever you need to regenerate documentation:
 
-**Note**: Documentation generation is **not** included in smoke tests or benchmarks by default. To add it:
-- Add `generate_mkdocs_docs` to benchmark tool list
-- Include it in smoke test suite
+```bash
+# Basic usage
+@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo
+
+# With custom output directory
+@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo output_dir=./custom-docs
+
+# Without changelog (faster)
+@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo include_changelog=false
+
+# HTML format instead of MkDocs
+@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo format=html
+```
+
+**CI/CD Integration:**
+Add to your GitHub Actions/GitLab CI workflow:
+```yaml
+- name: Generate Documentation
+  run: |
+    # Call generate_mkdocs_docs tool
+    echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"${{ github.workspace }}"}},"id":1}' | node dpb-mcp-typescript/build/server.js
+    # Commit docs/ directory to repository
+```
+
+**Note**: Documentation generation is now included in benchmarks. When you run `run-benchmark.sh`, it will benchmark `generate_mkdocs_docs` for all three implementations.
 
 ---
 
