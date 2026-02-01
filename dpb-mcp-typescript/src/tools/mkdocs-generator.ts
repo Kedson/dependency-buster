@@ -511,8 +511,49 @@ function generateHTMLSite(content: {
   </div>
   
   <div id="content">
-    <p><em>Full documentation content would be rendered here. Use MkDocs for proper markdown rendering.</em></p>
+    <div id="index-content">
+      ${markdownToHTML(content.index)}
+    </div>
+    <div id="dependencies-content">
+      ${markdownToHTML(content.dependencies)}
+    </div>
+    <div id="security-content">
+      ${markdownToHTML(content.security)}
+    </div>
+    <div id="licenses-content">
+      ${markdownToHTML(content.licenses)}
+    </div>
+    <div id="architecture-content">
+      ${markdownToHTML(content.architecture)}
+    </div>
+    ${content.changelog ? `<div id="changelog-content">${markdownToHTML(content.changelog)}</div>` : ''}
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    // Use marked.js for client-side markdown rendering if available
+    if (typeof marked !== 'undefined') {
+      document.querySelectorAll('#content > div').forEach(div => {
+        const markdown = div.textContent;
+        div.innerHTML = marked.parse(markdown);
+      });
+    }
+  </script>
 </body>
 </html>`;
+}
+
+function markdownToHTML(markdown: string): string {
+  // Basic markdown to HTML conversion (simple implementation)
+  // In production, use a proper markdown parser
+  return markdown
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^\* (.*$)/gim, '<li>$1</li>')
+    .replace(/^- (.*$)/gim, '<li>$1</li>')
+    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+    .replace(/`([^`]+)`/gim, '<code>$1</code>')
+    .replace(/\n\n/gim, '</p><p>')
+    .replace(/^(.+)$/gim, '<p>$1</p>');
 }

@@ -2,13 +2,13 @@
 
 The AzuraCast self-hosted web radio station management suite.
 
-**Generated:** 2026-02-01T06:20:59.231633+00:00
+**Generated:** 2026-02-01T06:20:58.904Z
 
 ## Quick Overview
 
 - **Project Type:** project
 - **License:** AGPL-3.0-or-later
-- **Production Dependencies:** 64
+- **Production Dependencies:** 84
 - **Development Dependencies:** 21
 
 ## Documentation Sections
@@ -18,6 +18,7 @@ The AzuraCast self-hosted web radio station management suite.
 - [Licenses](./licenses.md) - License compliance and distribution
 - [Architecture](./architecture.md) - Namespace structure and PSR-4 compliance
 - [Changelog](./changelog.md) - Dependency change history
+
 
 ## Getting Started
 

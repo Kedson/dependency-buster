@@ -2,7 +2,7 @@
 
 The AzuraCast self-hosted web radio station management suite.
 
-**Generated:** 2026-02-01T06:20:59.231633+00:00
+**Generated:** 2026-02-01T17:20:59+11:00
 
 ## Quick Overview
 
