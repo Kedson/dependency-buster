@@ -111,9 +111,43 @@ echo -e "${YELLOW}  Step 3: Setting Up Test Repository${NC}"
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
-# Test repository configuration (can be overridden via environment variable)
-TEST_REPO_URL="${TEST_REPO_URL:-https://github.com/AzuraCast/AzuraCast.git}"
-TEST_REPO_NAME="${TEST_REPO_NAME:-azuracast}"
+# Default test repository
+DEFAULT_REPO_URL="https://github.com/AzuraCast/AzuraCast.git"
+DEFAULT_REPO_NAME="azuracast"
+
+# Prompt for repository URL (if not set via environment variable)
+if [ -z "$TEST_REPO_URL" ]; then
+    echo -e "${CYAN}Test Repository Configuration${NC}"
+    echo -e "${DIM}Default: $DEFAULT_REPO_URL (AzuraCast)${NC}"
+    echo ""
+    echo -e "${YELLOW}Enter repository URL (or press Enter to use default):${NC}"
+    read -r USER_REPO_URL
+    
+    if [ -z "$USER_REPO_URL" ]; then
+        # User pressed Enter, use default
+        TEST_REPO_URL="$DEFAULT_REPO_URL"
+        TEST_REPO_NAME="$DEFAULT_REPO_NAME"
+        echo -e "${GREEN}✓${NC} Using default repository: ${BOLD}$DEFAULT_REPO_NAME${NC}"
+    else
+        # User provided custom URL
+        TEST_REPO_URL="$USER_REPO_URL"
+        # Extract repository name from URL
+        if [[ "$USER_REPO_URL" =~ github.com[:/]([^/]+)/([^/]+) ]]; then
+            TEST_REPO_NAME="${BASH_REMATCH[2]%.git}"
+        else
+            # Fallback: use last part of URL
+            TEST_REPO_NAME=$(basename "$USER_REPO_URL" .git)
+        fi
+        echo -e "${GREEN}✓${NC} Using custom repository: ${BOLD}$TEST_REPO_NAME${NC}"
+    fi
+    echo ""
+else
+    # Environment variable already set
+    TEST_REPO_NAME="${TEST_REPO_NAME:-$(basename "$TEST_REPO_URL" .git)}"
+    echo -e "${GREEN}✓${NC} Using repository from environment: ${BOLD}$TEST_REPO_NAME${NC}"
+    echo ""
+fi
+
 TEST_REPO_PATH="$WORKSPACE/test-repos/$TEST_REPO_NAME"
 
 mkdir -p "$WORKSPACE/test-repos"
