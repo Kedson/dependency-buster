@@ -413,12 +413,19 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
         if [ -f "dpb-mcp-typescript/build/server.js" ]; then
             echo -e "${BLUE}  Generating with TypeScript...${NC}"
             DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_TS_DIR'","include_changelog":true,"format":"html"}},"id":1}'
-            if echo "$DOCS_REQUEST" | node dpb-mcp-typescript/build/server.js > /dev/null 2>&1; then
-                if [ -f "$DOCS_TS_DIR/index.html" ]; then
-                    echo -e "${GREEN}    ✓${NC} TypeScript docs: $DOCS_TS_DIR/index.html"
-                    DOCS_GENERATED=$((DOCS_GENERATED + 1))
+            ERROR_OUTPUT=$(echo "$DOCS_REQUEST" | node dpb-mcp-typescript/build/server.js 2>&1)
+            EXIT_CODE=$?
+            if [ $EXIT_CODE -eq 0 ] && [ -f "$DOCS_TS_DIR/index.html" ]; then
+                echo -e "${GREEN}    ✓${NC} TypeScript docs: $DOCS_TS_DIR/index.html"
+                DOCS_GENERATED=$((DOCS_GENERATED + 1))
+            else
+                echo -e "${RED}    ✗${NC} TypeScript failed"
+                if [ -n "$ERROR_OUTPUT" ]; then
+                    echo -e "${DIM}      Error: $(echo "$ERROR_OUTPUT" | head -3 | tr '\n' ' ')${NC}"
                 fi
             fi
+        else
+            echo -e "${YELLOW}    ⚠${NC}  TypeScript server not found: dpb-mcp-typescript/build/server.js"
         fi
         
         # Go implementation
@@ -426,12 +433,19 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
         if [ -f "dpb-mcp-go/build/dpb-mcp" ]; then
             echo -e "${BLUE}  Generating with Go...${NC}"
             DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_GO_DIR'","include_changelog":true,"format":"html"}},"id":1}'
-            if echo "$DOCS_REQUEST" | dpb-mcp-go/build/dpb-mcp > /dev/null 2>&1; then
-                if [ -f "$DOCS_GO_DIR/index.html" ]; then
-                    echo -e "${GREEN}    ✓${NC} Go docs: $DOCS_GO_DIR/index.html"
-                    DOCS_GENERATED=$((DOCS_GENERATED + 1))
+            ERROR_OUTPUT=$(echo "$DOCS_REQUEST" | dpb-mcp-go/build/dpb-mcp 2>&1)
+            EXIT_CODE=$?
+            if [ $EXIT_CODE -eq 0 ] && [ -f "$DOCS_GO_DIR/index.html" ]; then
+                echo -e "${GREEN}    ✓${NC} Go docs: $DOCS_GO_DIR/index.html"
+                DOCS_GENERATED=$((DOCS_GENERATED + 1))
+            else
+                echo -e "${RED}    ✗${NC} Go failed"
+                if [ -n "$ERROR_OUTPUT" ]; then
+                    echo -e "${DIM}      Error: $(echo "$ERROR_OUTPUT" | head -3 | tr '\n' ' ')${NC}"
                 fi
             fi
+        else
+            echo -e "${YELLOW}    ⚠${NC}  Go binary not found: dpb-mcp-go/build/dpb-mcp"
         fi
         
         # Rust implementation
@@ -439,12 +453,19 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
         if [ -f "dpb-mcp-rust/target/release/dpb-mcp" ]; then
             echo -e "${BLUE}  Generating with Rust...${NC}"
             DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_RUST_DIR'","include_changelog":true,"format":"html"}},"id":1}'
-            if echo "$DOCS_REQUEST" | dpb-mcp-rust/target/release/dpb-mcp > /dev/null 2>&1; then
-                if [ -f "$DOCS_RUST_DIR/index.html" ]; then
-                    echo -e "${GREEN}    ✓${NC} Rust docs: $DOCS_RUST_DIR/index.html"
-                    DOCS_GENERATED=$((DOCS_GENERATED + 1))
+            ERROR_OUTPUT=$(echo "$DOCS_REQUEST" | dpb-mcp-rust/target/release/dpb-mcp 2>&1)
+            EXIT_CODE=$?
+            if [ $EXIT_CODE -eq 0 ] && [ -f "$DOCS_RUST_DIR/index.html" ]; then
+                echo -e "${GREEN}    ✓${NC} Rust docs: $DOCS_RUST_DIR/index.html"
+                DOCS_GENERATED=$((DOCS_GENERATED + 1))
+            else
+                echo -e "${RED}    ✗${NC} Rust failed"
+                if [ -n "$ERROR_OUTPUT" ]; then
+                    echo -e "${DIM}      Error: $(echo "$ERROR_OUTPUT" | head -3 | tr '\n' ' ')${NC}"
                 fi
             fi
+        else
+            echo -e "${YELLOW}    ⚠${NC}  Rust binary not found: dpb-mcp-rust/target/release/dpb-mcp"
         fi
         
         echo ""
@@ -458,7 +479,8 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
             echo -e "${DIM}  • Open HTML files directly in browser${NC}"
             echo -e "${DIM}  • Or use dashboard server to serve them${NC}"
         else
-            echo -e "${YELLOW}⚠️${NC}  No documentation generated (implementations may not be built)"
+            echo -e "${RED}✗${NC}  No documentation generated"
+            echo -e "${DIM}  Check errors above or ensure implementations are built${NC}"
         fi
         echo ""
         
@@ -471,32 +493,58 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
         if [[ "$server_response" =~ ^[Yy]$ ]]; then
             # Check if port 8080 is already in use
             if lsof -ti:8080 > /dev/null 2>&1; then
-                echo -e "${YELLOW}⚠️  Port 8080 is already in use.${NC}"
-                echo -e "${CYAN}Would you like to open the dashboard in your browser anyway? [Y/n]${NC}"
-                read -r -t 10 open_response
-                open_response=${open_response:-Y}
-                if [[ "$open_response" =~ ^[Yy]$ ]]; then
-                    if command -v open &> /dev/null; then
-                        open "http://localhost:8080"
-                    elif command -v xdg-open &> /dev/null; then
-                        xdg-open "http://localhost:8080"
+                EXISTING_PID=$(lsof -ti:8080 | head -1)
+                echo -e "${YELLOW}⚠️  Port 8080 is already in use (PID: $EXISTING_PID)${NC}"
+                echo -e "${CYAN}Would you like to stop the existing server and start a new one? [Y/n]${NC}"
+                read -r -t 10 kill_response
+                kill_response=${kill_response:-Y}
+                if [[ "$kill_response" =~ ^[Yy]$ ]]; then
+                    echo -e "${BLUE}Stopping existing server...${NC}"
+                    kill $EXISTING_PID 2>/dev/null || lsof -ti:8080 | xargs kill 2>/dev/null
+                    sleep 1
+                    echo -e "${GREEN}✓${NC} Existing server stopped"
+                else
+                    echo -e "${CYAN}Would you like to open the dashboard in your browser anyway? [Y/n]${NC}"
+                    read -r -t 10 open_response
+                    open_response=${open_response:-Y}
+                    if [[ "$open_response" =~ ^[Yy]$ ]]; then
+                        if command -v open &> /dev/null; then
+                            open "http://localhost:8080"
+                        elif command -v xdg-open &> /dev/null; then
+                            xdg-open "http://localhost:8080"
+                        fi
                     fi
+                    cd "$WORKSPACE"
+                    exit 0
                 fi
-            else
-                echo -e "${GREEN}🚀 Starting dashboard server...${NC}"
-                echo -e "${DIM}Server will run in the background. Press Ctrl+C to stop.${NC}"
-                echo ""
-                cd "$WORKSPACE/dpb-benchmark"
-                ./server/dashboard-server -open=true &
-                SERVER_PID=$!
-                sleep 2
-                echo -e "${GREEN}✓${NC} Dashboard server started (PID: $SERVER_PID)"
-                echo -e "${GREEN}✓${NC} Dashboard available at: ${BOLD}http://localhost:8080${NC}"
-                echo ""
-                echo -e "${DIM}To stop the server later: kill $SERVER_PID${NC}"
-                echo -e "${DIM}Or use: lsof -ti:8080 | xargs kill${NC}"
-                cd "$WORKSPACE"
             fi
+            
+            # Try to find an available port if 8080 is still in use
+            PORT=8080
+            if lsof -ti:$PORT > /dev/null 2>&1; then
+                echo -e "${YELLOW}⚠️  Port $PORT still in use, trying alternative port...${NC}"
+                for alt_port in 8081 8082 8083 8084 8085; do
+                    if ! lsof -ti:$alt_port > /dev/null 2>&1; then
+                        PORT=$alt_port
+                        echo -e "${GREEN}✓${NC} Using port $PORT instead"
+                        break
+                    fi
+                done
+            fi
+            
+            echo -e "${GREEN}🚀 Starting dashboard server on port $PORT...${NC}"
+            echo -e "${DIM}Server will run in the background. Press Ctrl+C to stop.${NC}"
+            echo ""
+            cd "$WORKSPACE/dpb-benchmark"
+            ./server/dashboard-server -port=$PORT -open=true &
+            SERVER_PID=$!
+            sleep 2
+            echo -e "${GREEN}✓${NC} Dashboard server started (PID: $SERVER_PID)"
+            echo -e "${GREEN}✓${NC} Dashboard available at: ${BOLD}http://localhost:$PORT${NC}"
+            echo ""
+            echo -e "${DIM}To stop the server later: kill $SERVER_PID${NC}"
+            echo -e "${DIM}Or use: lsof -ti:$PORT | xargs kill${NC}"
+            cd "$WORKSPACE"
         else
             # Offer to open docs HTML files directly
             echo ""

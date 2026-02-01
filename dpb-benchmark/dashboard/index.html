@@ -779,6 +779,10 @@
                 <a class="nav-item" href="#raw" hx-push-url="true">Raw Data</a>
                 
                 <div class="nav-label">Documentation</div>
+                <a class="nav-item" href="#" onclick="Dashboard.openDocumentation(); return false;">
+                    View Documentation
+                    <div class="nav-indicator" style="background: var(--success)"></div>
+                </a>
                 <a class="nav-item" href="#" onclick="Dashboard.showDocsModal(); return false;">
                     View Docs Guide
                     <div class="nav-indicator" style="background: var(--info)"></div>
@@ -2017,37 +2021,49 @@
                         <div style="padding: var(--space-5); line-height: 1.6;">
                             <h3 style="margin-bottom: var(--space-4); color: var(--text-primary);">Quick Start</h3>
                             <pre style="background: var(--bg-tertiary); padding: var(--space-4); border-radius: 4px; overflow-x: auto; margin-bottom: var(--space-4);"><code># Generate docs (via Cursor IDE or CLI)
-@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo
+@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo format=html
 
-# Or via command line
-echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"/path/to/repo"}},"id":1}' | node dpb-mcp-typescript/build/server.js</code></pre>
+# Or via command line (TypeScript)
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"/path/to/repo","format":"html"}},"id":1}' | node dpb-mcp-typescript/build/server.js
+
+# Or via command line (Go)
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"/path/to/repo","format":"html"}},"id":1}' | ./dpb-mcp-go/build/dpb-mcp
+
+# Or via command line (Rust)
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"/path/to/repo","format":"html"}},"id":1}' | ./dpb-mcp-rust/target/release/dpb-mcp</code></pre>
                             
                             <h3 style="margin-bottom: var(--space-4); margin-top: var(--space-6); color: var(--text-primary);">Viewing Generated Documentation</h3>
                             
                             <div style="margin-bottom: var(--space-4);">
-                                <strong style="color: var(--te-orange);">Option 1: MkDocs (Recommended)</strong>
-                                <pre style="background: var(--bg-tertiary); padding: var(--space-4); border-radius: 4px; overflow-x: auto; margin-top: var(--space-2);"><code>cd docs
-pip install mkdocs mkdocs-material
-mkdocs serve
-# Opens at http://127.0.0.1:8000</code></pre>
+                                <strong style="color: var(--te-orange);">Option 1: HTML Files (Recommended - No Python Required)</strong>
+                                <pre style="background: var(--bg-tertiary); padding: var(--space-4); border-radius: 4px; overflow-x: auto; margin-top: var(--space-2);"><code># Open HTML files directly in browser
+open docs-typescript/index.html
+open docs-go/index.html
+open docs-rust/index.html
+
+# Or use the "View Documentation" menu item in the dashboard</code></pre>
                             </div>
                             
                             <div style="margin-bottom: var(--space-4);">
-                                <strong style="color: var(--te-orange);">Option 2: View Markdown Directly</strong>
-                                <pre style="background: var(--bg-tertiary); padding: var(--space-4); border-radius: 4px; overflow-x: auto; margin-top: var(--space-2);"><code>code docs/index.md</code></pre>
-                            </div>
-                            
-                            <div style="margin-bottom: var(--space-4);">
-                                <strong style="color: var(--te-orange);">Option 3: HTML Output</strong>
-                                <pre style="background: var(--bg-tertiary); padding: var(--space-4); border-radius: 4px; overflow-x: auto; margin-top: var(--space-2);"><code># Generate with format=html
-# Then open docs/index.html in browser</code></pre>
+                                <strong style="color: var(--te-orange);">Option 2: View Markdown Files</strong>
+                                <pre style="background: var(--bg-tertiary); padding: var(--space-4); border-radius: 4px; overflow-x: auto; margin-top: var(--space-2);"><code># Markdown files are generated alongside HTML for AI agents
+code docs-typescript/index.md
+code docs-go/index.md
+code docs-rust/index.md</code></pre>
                             </div>
                             
                             <div style="margin-top: var(--space-6); padding: var(--space-4); background: var(--bg-tertiary); border-radius: 4px; border-left: 3px solid var(--info);">
                                 <strong style="color: var(--info);">💡 Auto-Generation</strong>
                                 <p style="margin-top: var(--space-2); margin-bottom: 0; color: var(--text-secondary);">
                                     Documentation is automatically generated when the dashboard server starts for the first time (if docs don't exist). 
-                                    After that, generate on-demand using the command above.
+                                    All three implementations (TypeScript, Go, Rust) generate docs in separate folders: docs-typescript/, docs-go/, docs-rust/
+                                </p>
+                            </div>
+                            
+                            <div style="margin-top: var(--space-4); padding: var(--space-4); background: var(--bg-tertiary); border-radius: 4px; border-left: 3px solid var(--success);">
+                                <strong style="color: var(--success);">✓ No Python Required</strong>
+                                <p style="margin-top: var(--space-2); margin-bottom: 0; color: var(--text-secondary);">
+                                    Documentation generation uses native HTML generation. No mkdocs, pip, or Python dependencies needed.
                                 </p>
                             </div>
                             
@@ -2072,7 +2088,42 @@ mkdocs serve
             }
         }
         
-        return { init, showTab, showOutput, runSmokeTests, closeTestModal, clearTestHistory, showDocsModal, closeDocsModal };
+        function openDocumentation() {
+            // Try to find and open documentation HTML files
+            const docsPaths = [
+                '../docs-typescript/index.html',
+                '../docs-go/index.html',
+                '../docs-rust/index.html',
+                '../../docs-typescript/index.html',
+                '../../docs-go/index.html',
+                '../../docs-rust/index.html',
+                'docs-typescript/index.html',
+                'docs-go/index.html',
+                'docs-rust/index.html'
+            ];
+            
+            let found = false;
+            for (const path of docsPaths) {
+                // Check if file exists by trying to fetch it
+                fetch(path, { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok && !found) {
+                            found = true;
+                            window.open(path, '_blank');
+                        }
+                    })
+                    .catch(() => {});
+            }
+            
+            // If no docs found, show a message
+            setTimeout(() => {
+                if (!found) {
+                    alert('Documentation not found. Please generate docs first using:\n\n@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo format=html\n\nOr use the "View Docs Guide" for instructions.');
+                }
+            }, 500);
+        }
+        
+        return { init, showTab, showOutput, runSmokeTests, closeTestModal, clearTestHistory, showDocsModal, closeDocsModal, openDocumentation };
     })();
     
     // Run on DOM ready
