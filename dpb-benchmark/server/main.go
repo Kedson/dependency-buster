@@ -127,12 +127,25 @@ func main() {
 	fmt.Println("└─────────────────────────────────────────────────────────┘")
 	fmt.Println()
 
-	// Open browser
+	// Start HTTP server in goroutine
+	serverStarted := make(chan bool, 1)
+	go func() {
+		serverStarted <- true
+		if err := http.ListenAndServe(addr, nil); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// Wait for server to start, then open browser
 	if *open {
+		<-serverStarted
+		// Give server a moment to actually start listening
+		time.Sleep(300 * time.Millisecond)
 		openBrowser(url)
 	}
 
-	log.Fatal(http.ListenAndServe(addr, nil))
+	// Block forever to keep server running
+	select {}
 }
 
 func findDashboardDir() string {

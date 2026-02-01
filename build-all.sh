@@ -542,9 +542,30 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
             cd "$WORKSPACE/dpb-benchmark"
             ./server/dashboard-server -port=$PORT -open=true &
             SERVER_PID=$!
-            sleep 2
-            echo -e "${GREEN}✓${NC} Dashboard server started (PID: $SERVER_PID)"
-            echo -e "${GREEN}✓${NC} Dashboard available at: ${BOLD}http://localhost:$PORT${NC}"
+            sleep 3  # Give server time to start and open browser
+            
+            # Verify server is actually running
+            if ps -p $SERVER_PID > /dev/null 2>&1; then
+                echo -e "${GREEN}✓${NC} Dashboard server started (PID: $SERVER_PID)"
+                echo -e "${GREEN}✓${NC} Dashboard available at: ${BOLD}http://localhost:$PORT${NC}"
+                
+                # Fallback: Try to open browser if server didn't (sometimes fails in background)
+                if ! lsof -ti:$PORT > /dev/null 2>&1; then
+                    echo -e "${YELLOW}⚠️  Server may not have started properly${NC}"
+                else
+                    # Double-check browser opened, if not try to open manually
+                    sleep 1
+                    if command -v open &> /dev/null; then
+                        open "http://localhost:$PORT" 2>/dev/null || true
+                    elif command -v xdg-open &> /dev/null; then
+                        xdg-open "http://localhost:$PORT" 2>/dev/null || true
+                    fi
+                fi
+            else
+                echo -e "${RED}✗${NC} Server failed to start"
+                echo -e "${YELLOW}Try running manually:${NC}"
+                echo "  cd dpb-benchmark && ./server/dashboard-server -port=$PORT"
+            fi
             echo ""
             echo -e "${DIM}To stop the server later: kill $SERVER_PID${NC}"
             echo -e "${DIM}Or use: lsof -ti:$PORT | xargs kill${NC}"
