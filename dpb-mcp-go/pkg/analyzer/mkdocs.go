@@ -508,18 +508,16 @@ func generateMkDocsConfig(siteName, siteDescription string, includeChangelog boo
 }
 
 func generateHTMLSite(siteName, siteDescription, index, dependencies, security, licenses, architecture, changelog string) string {
-	// Escape markdown content for JavaScript strings (proper escaping for template literals)
+	// Escape markdown content for JavaScript template literals (backticks)
 	escapeJS := func(s string) string {
-		// Escape backslashes first
+		// Escape backslashes first (must be first!)
 		s = strings.ReplaceAll(s, "\\", "\\\\")
-		// Escape backticks
+		// Escape backticks for template literals
 		s = strings.ReplaceAll(s, "`", "\\`")
-		// Escape dollar signs (for template literals)
-		s = strings.ReplaceAll(s, "$", "\\$")
+		// Escape dollar signs (for template literal expressions)
+		s = strings.ReplaceAll(s, "${", "\\${")
 		// Escape newlines
 		s = strings.ReplaceAll(s, "\n", "\\n")
-		// Escape quotes
-		s = strings.ReplaceAll(s, "\"", "\\\"")
 		// Escape carriage returns
 		s = strings.ReplaceAll(s, "\r", "\\r")
 		return s
@@ -542,13 +540,10 @@ func generateHTMLSite(siteName, siteDescription, index, dependencies, security, 
     <div id="changelog-content"></div>
   </div>`
 		changelogEscaped := escapeJS(changelog)
+		backtick := "`"
 		changelogScript = fmt.Sprintf(`
-    const changelogMD = \`%s\`;
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('changelog-content').innerHTML = markdownToHTML(changelogMD);
-      });
-    } else {
+    const changelogMD = `+backtick+`%s`+backtick+`;
+    if (document.getElementById('changelog-content')) {
       document.getElementById('changelog-content').innerHTML = markdownToHTML(changelogMD);
     }`, changelogEscaped)
 	}
@@ -629,27 +624,25 @@ func generateHTMLSite(siteName, siteDescription, index, dependencies, security, 
         .replace(/\\n/gim, '<br>');
     }
     
-    const indexMD = \`%s\`;
-    const depsMD = \`%s\`;
-    const secMD = \`%s\`;
-    const licMD = \`%s\`;
-    const archMD = \`%s\`;%s
+    const indexMD = ` + "`" + `%s` + "`" + `;
+    const depsMD = ` + "`" + `%s` + "`" + `;
+    const secMD = ` + "`" + `%s` + "`" + `;
+    const licMD = ` + "`" + `%s` + "`" + `;
+    const archMD = ` + "`" + `%s` + "`" + `;%s
     
     // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('index-content').innerHTML = markdownToHTML(indexMD);
-        document.getElementById('dependencies-content').innerHTML = markdownToHTML(depsMD);
-        document.getElementById('security-content').innerHTML = markdownToHTML(secMD);
-        document.getElementById('licenses-content').innerHTML = markdownToHTML(licMD);
-        document.getElementById('architecture-content').innerHTML = markdownToHTML(archMD);%s
-      });
-    } else {
+    function renderContent() {
       document.getElementById('index-content').innerHTML = markdownToHTML(indexMD);
       document.getElementById('dependencies-content').innerHTML = markdownToHTML(depsMD);
       document.getElementById('security-content').innerHTML = markdownToHTML(secMD);
       document.getElementById('licenses-content').innerHTML = markdownToHTML(licMD);
       document.getElementById('architecture-content').innerHTML = markdownToHTML(archMD);%s
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderContent);
+    } else {
+      renderContent();
     }
   </script>
 </body>

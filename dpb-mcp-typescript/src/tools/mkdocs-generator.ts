@@ -472,6 +472,23 @@ function generateHTMLSite(content: {
   architecture: string;
   changelog: string;
 }): string {
+  // Escape markdown for JavaScript template literals
+  const escapeTemplateLiteral = (s: string): string => {
+    return s
+      .replace(/\\/g, '\\\\')      // Escape backslashes first
+      .replace(/`/g, '\\`')        // Escape backticks
+      .replace(/\${/g, '\\${')     // Escape template literal expressions
+      .replace(/\n/g, '\\n')       // Escape newlines
+      .replace(/\r/g, '\\r');      // Escape carriage returns
+  };
+  
+  const indexEscaped = escapeTemplateLiteral(content.index);
+  const depsEscaped = escapeTemplateLiteral(content.dependencies);
+  const secEscaped = escapeTemplateLiteral(content.security);
+  const licEscaped = escapeTemplateLiteral(content.licenses);
+  const archEscaped = escapeTemplateLiteral(content.architecture);
+  const changelogEscaped = content.changelog ? escapeTemplateLiteral(content.changelog) : '';
+  
   // Simple HTML with embedded CSS and navigation
   // In production, you'd use a proper markdown-to-HTML converter
   return `<!DOCTYPE html>
@@ -535,22 +552,12 @@ function generateHTMLSite(content: {
         .replace(/\\n/gim, '<br>');
     }
     
-    // Escape markdown for JavaScript template literals
-    function escapeTemplateLiteral(s) {
-      return s
-        .replace(/\\\\/g, '\\\\\\\\')  // Escape backslashes
-        .replace(/\`/g, '\\\\`')       // Escape backticks
-        .replace(/\$/g, '\\\\$')      // Escape dollar signs
-        .replace(/\n/g, '\\\\n')      // Escape newlines
-        .replace(/\r/g, '\\\\r');      // Escape carriage returns
-    }
-    
-    const indexMD = \`${escapeTemplateLiteral(content.index)}\`;
-    const depsMD = \`${escapeTemplateLiteral(content.dependencies)}\`;
-    const secMD = \`${escapeTemplateLiteral(content.security)}\`;
-    const licMD = \`${escapeTemplateLiteral(content.licenses)}\`;
-    const archMD = \`${escapeTemplateLiteral(content.architecture)}\`;
-    ${content.changelog ? `const changelogMD = \`${escapeTemplateLiteral(content.changelog)}\`;` : 'const changelogMD = "";'}
+    const indexMD = \`${indexEscaped}\`;
+    const depsMD = \`${depsEscaped}\`;
+    const secMD = \`${secEscaped}\`;
+    const licMD = \`${licEscaped}\`;
+    const archMD = \`${archEscaped}\`;
+    ${content.changelog ? `const changelogMD = \`${changelogEscaped}\`;` : 'const changelogMD = "";'}
     
     // Wait for DOM to be ready
     function renderContent() {
