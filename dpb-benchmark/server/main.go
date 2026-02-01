@@ -66,7 +66,7 @@ func main() {
 	// Also check parent directory and current directory for docs
 	// Check multiple levels up for common patterns
 	currentDir := dashboardDir
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 4; i++ {
 		parent := filepath.Dir(currentDir)
 		if parent == currentDir {
 			break
@@ -79,17 +79,6 @@ func main() {
 			filepath.Join(parent, "docs-rust"),
 		}
 		docsDirs = append(docsDirs, patterns...)
-		
-		// Also check for dependency-buster-main pattern
-		if filepath.Base(parent) == "dependency-buster-main" || filepath.Base(parent) == "dpb-mcp-workspace" {
-			patterns = []string{
-				filepath.Join(parent, "docs"),
-				filepath.Join(parent, "docs-typescript"),
-				filepath.Join(parent, "docs-go"),
-				filepath.Join(parent, "docs-rust"),
-			}
-			docsDirs = append(docsDirs, patterns...)
-		}
 		currentDir = parent
 	}
 	
