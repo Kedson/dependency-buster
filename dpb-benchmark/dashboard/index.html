@@ -851,6 +851,20 @@
                         <div class="chart-container-lg"><canvas id="chart-tools"></canvas></div>
                     </div>
                 </div>
+                
+                <div class="card" style="margin-top: var(--space-4);">
+                    <div class="card-label" style="margin-bottom: var(--space-4);">Documentation Generation Benchmarks</div>
+                    <div id="docs-benchmark-section">
+                        <table class="table" style="margin-top: var(--space-3);">
+                            <thead>
+                                <tr><th>Implementation</th><th>Time</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="docs-benchmark-table">
+                                <tr><td colspan="3" style="text-align: center; color: var(--text-secondary); padding: var(--space-4);">Run benchmarks to see documentation generation performance</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
             
             <!-- 02 Dependencies -->
@@ -1113,7 +1127,8 @@
                 { key: 'analyze_psr4', label: 'PSR-4', unit: 'ms' },
                 { key: 'detect_namespaces', label: 'Namespaces', unit: 'ms' },
                 { key: 'audit_security', label: 'Security', unit: 'ms' },
-                { key: 'analyze_licenses', label: 'Licenses', unit: 'ms' }
+                { key: 'analyze_licenses', label: 'Licenses', unit: 'ms' },
+                { key: 'generate_mkdocs_docs', label: 'Docs Generation', unit: 'ms' }
             ];
             
             $('comparison-table').innerHTML = rows.map(r => {
@@ -1130,8 +1145,8 @@
         }
         
         function renderToolsChart() {
-            const tools = ['analyze_dependencies', 'analyze_psr4', 'detect_namespaces', 'audit_security', 'analyze_licenses'];
-            const labels = ['Deps', 'PSR-4', 'NS', 'Security', 'License'];
+            const tools = ['analyze_dependencies', 'analyze_psr4', 'detect_namespaces', 'audit_security', 'analyze_licenses', 'generate_mkdocs_docs'];
+            const labels = ['Deps', 'PSR-4', 'NS', 'Security', 'License', 'Docs'];
             
             new Chart($('chart-tools'), {
                 type: 'bar',
@@ -1155,6 +1170,41 @@
                     }
                 }
             });
+        }
+        
+        function renderDocsBenchmark() {
+            const docsBenchmarkTable = document.getElementById('docs-benchmark-table');
+            if (!docsBenchmarkTable) return;
+            
+            const hasData = impls.some(impl => benchmarkResults[impl]?.generate_mkdocs_docs);
+            
+            if (!hasData) {
+                docsBenchmarkTable.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--text-secondary); padding: var(--space-4);">
+                            Run benchmarks to see documentation generation performance<br>
+                            <small style="font-size: 11px; margin-top: var(--space-2); display: block;">
+                                Benchmarks run automatically when server starts for the first time,<br>
+                                or use <code>run-benchmark.sh</code> to generate benchmark data
+                            </small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const w = findWinner('generate_mkdocs_docs');
+            docsBenchmarkTable.innerHTML = impls.map(impl => {
+                const time = benchmarkResults[impl]?.generate_mkdocs_docs || 0;
+                const isBest = impl === w.impl && time > 0;
+                const status = time > 0 ? '✓ Benchmarked' : 'Not benchmarked';
+                
+                return html`<tr>
+                    <td class="metric-name">${impl}</td>
+                    <td class="${isBest ? 'best' : ''}">${time || '-'} ${time ? 'ms' : ''}</td>
+                    <td style="color: ${time > 0 ? 'var(--success)' : 'var(--text-secondary)'};">${status}</td>
+                </tr>`;
+            }).join('');
         }
         
         // ══════════════════════════════════════════════════════════════════
@@ -1542,6 +1592,7 @@
             renderWinners();
             renderComparison();
             renderToolsChart();
+            renderDocsBenchmark();
             renderDependencies();
             renderSecurity();
             renderLicenses();
