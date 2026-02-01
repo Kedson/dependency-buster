@@ -2150,42 +2150,43 @@ code docs-rust/index.md</code></pre>
             
             // Check availability of each implementation
             const availableDocs = [];
-            let checked = 0;
-            const totalChecks = docsOptions.length;
+            let totalChecked = 0;
+            const totalPathsToCheck = docsOptions.reduce((sum, opt) => sum + 1 + opt.altPaths.length, 0);
             
             docsOptions.forEach(option => {
                 const allPaths = [option.path, ...option.altPaths];
-                let found = false;
+                let optionFound = false;
                 
                 allPaths.forEach(path => {
-                    if (!found) {
-                        fetch(path, { method: 'HEAD' })
-                            .then(response => {
-                                if (response.ok && !found) {
-                                    found = true;
-                                    availableDocs.push({ name: option.name, path: path });
-                                }
-                                checked++;
-                                if (checked === totalChecks * allPaths.length) {
-                                    showDocsSelection(availableDocs);
-                                }
-                            })
-                            .catch(() => {
-                                checked++;
-                                if (checked === totalChecks * allPaths.length) {
-                                    showDocsSelection(availableDocs);
-                                }
-                            });
-                    }
+                    fetch(path, { method: 'HEAD', cache: 'no-cache' })
+                        .then(response => {
+                            totalChecked++;
+                            if (response.ok && !optionFound) {
+                                optionFound = true;
+                                availableDocs.push({ name: option.name, path: path });
+                            }
+                            if (totalChecked === totalPathsToCheck) {
+                                showDocsSelection(availableDocs);
+                            }
+                        })
+                        .catch(() => {
+                            totalChecked++;
+                            if (totalChecked === totalPathsToCheck) {
+                                showDocsSelection(availableDocs);
+                            }
+                        });
                 });
             });
             
-            // Fallback timeout
+            // Fallback timeout - show results after 1.5 seconds even if not all checked
             setTimeout(() => {
-                if (checked < totalChecks * 4) {
+                if (availableDocs.length > 0 || totalChecked >= totalPathsToCheck) {
                     showDocsSelection(availableDocs);
+                } else {
+                    // Still checking, wait a bit more
+                    setTimeout(() => showDocsSelection(availableDocs), 1000);
                 }
-            }, 2000);
+            }, 1500);
         }
         
         function showDocsSelection(availableDocs) {

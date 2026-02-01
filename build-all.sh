@@ -403,17 +403,16 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
         
         # Generate documentation with all three implementations
         echo -e "${BLUE}📚 Generating documentation with all implementations (HTML format)...${NC}"
-        echo -e "${DIM}  No Python required - using native HTML generation${NC}"
         echo ""
         
         DOCS_GENERATED=0
         
         # TypeScript implementation
         DOCS_TS_DIR="$WORKSPACE/docs-typescript"
-        if [ -f "dpb-mcp-typescript/build/server.js" ]; then
+        if [ -f "$WORKSPACE/dpb-mcp-typescript/build/server.js" ]; then
             echo -e "${BLUE}  Generating with TypeScript...${NC}"
             DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_TS_DIR'","include_changelog":true,"format":"html"}},"id":1}'
-            ERROR_OUTPUT=$(echo "$DOCS_REQUEST" | node dpb-mcp-typescript/build/server.js 2>&1)
+            ERROR_OUTPUT=$(echo "$DOCS_REQUEST" | node "$WORKSPACE/dpb-mcp-typescript/build/server.js" 2>&1)
             EXIT_CODE=$?
             if [ $EXIT_CODE -eq 0 ] && [ -f "$DOCS_TS_DIR/index.html" ]; then
                 echo -e "${GREEN}    ✓${NC} TypeScript docs: $DOCS_TS_DIR/index.html"
@@ -425,15 +424,15 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
                 fi
             fi
         else
-            echo -e "${YELLOW}    ⚠${NC}  TypeScript server not found: dpb-mcp-typescript/build/server.js"
+            echo -e "${YELLOW}    ⚠${NC}  TypeScript server not found: $WORKSPACE/dpb-mcp-typescript/build/server.js"
         fi
         
         # Go implementation
         DOCS_GO_DIR="$WORKSPACE/docs-go"
-        if [ -f "dpb-mcp-go/build/dpb-mcp" ]; then
+        if [ -f "$WORKSPACE/dpb-mcp-go/build/dpb-mcp" ]; then
             echo -e "${BLUE}  Generating with Go...${NC}"
             DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_GO_DIR'","include_changelog":true,"format":"html"}},"id":1}'
-            ERROR_OUTPUT=$(echo "$DOCS_REQUEST" | dpb-mcp-go/build/dpb-mcp 2>&1)
+            ERROR_OUTPUT=$(echo "$DOCS_REQUEST" | "$WORKSPACE/dpb-mcp-go/build/dpb-mcp" 2>&1)
             EXIT_CODE=$?
             if [ $EXIT_CODE -eq 0 ] && [ -f "$DOCS_GO_DIR/index.html" ]; then
                 echo -e "${GREEN}    ✓${NC} Go docs: $DOCS_GO_DIR/index.html"
@@ -445,15 +444,15 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
                 fi
             fi
         else
-            echo -e "${YELLOW}    ⚠${NC}  Go binary not found: dpb-mcp-go/build/dpb-mcp"
+            echo -e "${YELLOW}    ⚠${NC}  Go binary not found: $WORKSPACE/dpb-mcp-go/build/dpb-mcp"
         fi
         
         # Rust implementation
         DOCS_RUST_DIR="$WORKSPACE/docs-rust"
-        if [ -f "dpb-mcp-rust/target/release/dpb-mcp" ]; then
+        if [ -f "$WORKSPACE/dpb-mcp-rust/target/release/dpb-mcp" ]; then
             echo -e "${BLUE}  Generating with Rust...${NC}"
             DOCS_REQUEST='{"jsonrpc":"2.0","method":"tools/call","params":{"name":"generate_mkdocs_docs","arguments":{"repo_path":"'$TEST_REPO_PATH'","output_dir":"'$DOCS_RUST_DIR'","include_changelog":true,"format":"html"}},"id":1}'
-            ERROR_OUTPUT=$(echo "$DOCS_REQUEST" | dpb-mcp-rust/target/release/dpb-mcp 2>&1)
+            ERROR_OUTPUT=$(echo "$DOCS_REQUEST" | "$WORKSPACE/dpb-mcp-rust/target/release/dpb-mcp" 2>&1)
             EXIT_CODE=$?
             if [ $EXIT_CODE -eq 0 ] && [ -f "$DOCS_RUST_DIR/index.html" ]; then
                 echo -e "${GREEN}    ✓${NC} Rust docs: $DOCS_RUST_DIR/index.html"
@@ -465,7 +464,7 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
                 fi
             fi
         else
-            echo -e "${YELLOW}    ⚠${NC}  Rust binary not found: dpb-mcp-rust/target/release/dpb-mcp"
+            echo -e "${YELLOW}    ⚠${NC}  Rust binary not found: $WORKSPACE/dpb-mcp-rust/target/release/dpb-mcp"
         fi
         
         echo ""
