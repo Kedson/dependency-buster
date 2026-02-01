@@ -511,31 +511,61 @@ function generateHTMLSite(content: {
   </div>
   
   <div id="content">
-    <div id="index-content">
-      ${markdownToHTML(content.index)}
-    </div>
-    <div id="dependencies-content">
-      ${markdownToHTML(content.dependencies)}
-    </div>
-    <div id="security-content">
-      ${markdownToHTML(content.security)}
-    </div>
-    <div id="licenses-content">
-      ${markdownToHTML(content.licenses)}
-    </div>
-    <div id="architecture-content">
-      ${markdownToHTML(content.architecture)}
-    </div>
-    ${content.changelog ? `<div id="changelog-content">${markdownToHTML(content.changelog)}</div>` : ''}
+    <div id="index-content"></div>
+    <div id="dependencies-content"></div>
+    <div id="security-content"></div>
+    <div id="licenses-content"></div>
+    <div id="architecture-content"></div>
+    ${content.changelog ? '<div id="changelog-content"></div>' : ''}
   </div>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
-    // Use marked.js for client-side markdown rendering if available
-    if (typeof marked !== 'undefined') {
-      document.querySelectorAll('#content > div').forEach(div => {
-        const markdown = div.textContent;
-        div.innerHTML = marked.parse(markdown);
-      });
+    function markdownToHTML(md) {
+      if (typeof marked !== 'undefined') {
+        return marked.parse(md);
+      }
+      // Fallback basic conversion
+      return md
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/\\*\\*(.*?)\\*\\*/gim, '<strong>$1</strong>')
+        .replace(/\\*(.*?)\\*/gim, '<em>$1</em>')
+        .replace(/\x60([^\x60]+)\x60/gim, '<code>$1</code>')
+        .replace(/\\n/gim, '<br>');
+    }
+    
+    // Escape markdown for JavaScript template literals
+    function escapeTemplateLiteral(s) {
+      return s
+        .replace(/\\\\/g, '\\\\\\\\')  // Escape backslashes
+        .replace(/\`/g, '\\\\`')       // Escape backticks
+        .replace(/\$/g, '\\\\$')      // Escape dollar signs
+        .replace(/\n/g, '\\\\n')      // Escape newlines
+        .replace(/\r/g, '\\\\r');      // Escape carriage returns
+    }
+    
+    const indexMD = \`${escapeTemplateLiteral(content.index)}\`;
+    const depsMD = \`${escapeTemplateLiteral(content.dependencies)}\`;
+    const secMD = \`${escapeTemplateLiteral(content.security)}\`;
+    const licMD = \`${escapeTemplateLiteral(content.licenses)}\`;
+    const archMD = \`${escapeTemplateLiteral(content.architecture)}\`;
+    ${content.changelog ? `const changelogMD = \`${escapeTemplateLiteral(content.changelog)}\`;` : 'const changelogMD = "";'}
+    
+    // Wait for DOM to be ready
+    function renderContent() {
+      document.getElementById('index-content').innerHTML = markdownToHTML(indexMD);
+      document.getElementById('dependencies-content').innerHTML = markdownToHTML(depsMD);
+      document.getElementById('security-content').innerHTML = markdownToHTML(secMD);
+      document.getElementById('licenses-content').innerHTML = markdownToHTML(licMD);
+      document.getElementById('architecture-content').innerHTML = markdownToHTML(archMD);
+      ${content.changelog ? "if (document.getElementById('changelog-content')) document.getElementById('changelog-content').innerHTML = markdownToHTML(changelogMD);" : ''}
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderContent);
+    } else {
+      renderContent();
     }
   </script>
 </body>

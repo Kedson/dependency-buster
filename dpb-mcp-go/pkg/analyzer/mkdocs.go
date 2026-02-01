@@ -508,9 +508,21 @@ func generateMkDocsConfig(siteName, siteDescription string, includeChangelog boo
 }
 
 func generateHTMLSite(siteName, siteDescription, index, dependencies, security, licenses, architecture, changelog string) string {
-	// Escape markdown content for JavaScript strings
+	// Escape markdown content for JavaScript strings (proper escaping for template literals)
 	escapeJS := func(s string) string {
-		return strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(s, "\\", "\\\\"), "`", "\\`"), "$", "\\$"), "\n", "\\n")
+		// Escape backslashes first
+		s = strings.ReplaceAll(s, "\\", "\\\\")
+		// Escape backticks
+		s = strings.ReplaceAll(s, "`", "\\`")
+		// Escape dollar signs (for template literals)
+		s = strings.ReplaceAll(s, "$", "\\$")
+		// Escape newlines
+		s = strings.ReplaceAll(s, "\n", "\\n")
+		// Escape quotes
+		s = strings.ReplaceAll(s, "\"", "\\\"")
+		// Escape carriage returns
+		s = strings.ReplaceAll(s, "\r", "\\r")
+		return s
 	}
 	
 	indexEscaped := escapeJS(index)
@@ -531,8 +543,14 @@ func generateHTMLSite(siteName, siteDescription, index, dependencies, security, 
   </div>`
 		changelogEscaped := escapeJS(changelog)
 		changelogScript = fmt.Sprintf(`
-    const changelogMD = "%s";
-    document.getElementById('changelog-content').innerHTML = markdownToHTML(changelogMD);`, changelogEscaped)
+    const changelogMD = \`%s\`;
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('changelog-content').innerHTML = markdownToHTML(changelogMD);
+      });
+    } else {
+      document.getElementById('changelog-content').innerHTML = markdownToHTML(changelogMD);
+    }`, changelogEscaped)
 	}
 	
 	html := fmt.Sprintf(`<!DOCTYPE html>
@@ -611,17 +629,28 @@ func generateHTMLSite(siteName, siteDescription, index, dependencies, security, 
         .replace(/\\n/gim, '<br>');
     }
     
-    const indexMD = "%s";
-    const depsMD = "%s";
-    const secMD = "%s";
-    const licMD = "%s";
-    const archMD = "%s";%s
+    const indexMD = \`%s\`;
+    const depsMD = \`%s\`;
+    const secMD = \`%s\`;
+    const licMD = \`%s\`;
+    const archMD = \`%s\`;%s
     
-    document.getElementById('index-content').innerHTML = markdownToHTML(indexMD);
-    document.getElementById('dependencies-content').innerHTML = markdownToHTML(depsMD);
-    document.getElementById('security-content').innerHTML = markdownToHTML(secMD);
-    document.getElementById('licenses-content').innerHTML = markdownToHTML(licMD);
-    document.getElementById('architecture-content').innerHTML = markdownToHTML(archMD);%s
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('index-content').innerHTML = markdownToHTML(indexMD);
+        document.getElementById('dependencies-content').innerHTML = markdownToHTML(depsMD);
+        document.getElementById('security-content').innerHTML = markdownToHTML(secMD);
+        document.getElementById('licenses-content').innerHTML = markdownToHTML(licMD);
+        document.getElementById('architecture-content').innerHTML = markdownToHTML(archMD);%s
+      });
+    } else {
+      document.getElementById('index-content').innerHTML = markdownToHTML(indexMD);
+      document.getElementById('dependencies-content').innerHTML = markdownToHTML(depsMD);
+      document.getElementById('security-content').innerHTML = markdownToHTML(secMD);
+      document.getElementById('licenses-content').innerHTML = markdownToHTML(licMD);
+      document.getElementById('architecture-content').innerHTML = markdownToHTML(archMD);%s
+    }
   </script>
 </body>
 </html>`, siteName, changelogNav, siteName, siteDescription, changelogSection, indexEscaped, depsEscaped, secEscaped, licEscaped, archEscaped, changelogScript, changelogScript)
