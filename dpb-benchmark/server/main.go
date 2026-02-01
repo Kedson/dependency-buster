@@ -63,31 +63,52 @@ func main() {
 		)
 	}
 	
-	// Also check parent directory (for cases where docs are in sibling directories)
-	if parentDir := filepath.Dir(dashboardDir); parentDir != dashboardDir {
-		// Check for dependency-buster-main/docs or similar patterns
-		parent := filepath.Dir(parentDir)
-		if parent != parentDir {
-			// Look for common workspace patterns
-			patterns := []string{
-				filepath.Join(parent, "dependency-buster-main", "docs"),
-				filepath.Join(parent, "dependency-buster-main", "docs-typescript"),
-				filepath.Join(parent, "dependency-buster-main", "docs-go"),
-				filepath.Join(parent, "dependency-buster-main", "docs-rust"),
+	// Also check parent directory and current directory for docs
+	// Check multiple levels up for common patterns
+	currentDir := dashboardDir
+	for i := 0; i < 3; i++ {
+		parent := filepath.Dir(currentDir)
+		if parent == currentDir {
+			break
+		}
+		// Check for docs directories at this level
+		patterns := []string{
+			filepath.Join(parent, "docs"),
+			filepath.Join(parent, "docs-typescript"),
+			filepath.Join(parent, "docs-go"),
+			filepath.Join(parent, "docs-rust"),
+		}
+		docsDirs = append(docsDirs, patterns...)
+		
+		// Also check for dependency-buster-main pattern
+		if filepath.Base(parent) == "dependency-buster-main" || filepath.Base(parent) == "dpb-mcp-workspace" {
+			patterns = []string{
+				filepath.Join(parent, "docs"),
+				filepath.Join(parent, "docs-typescript"),
+				filepath.Join(parent, "docs-go"),
+				filepath.Join(parent, "docs-rust"),
 			}
 			docsDirs = append(docsDirs, patterns...)
 		}
+		currentDir = parent
 	}
 	
 	// Serve all found docs directories
 	for _, docsDir := range docsDirs {
-		if _, err := os.Stat(docsDir); err == nil {
-			// Serve each docs directory at /docs-{name}/ or /docs/
-			dirName := filepath.Base(docsDir)
-			if dirName == "docs" {
-				http.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir(docsDir))))
-			} else {
-				http.Handle("/"+dirName+"/", http.StripPrefix("/"+dirName+"/", http.FileServer(http.Dir(docsDir))))
+		if absDocsDir, err := filepath.Abs(docsDir); err == nil {
+			if _, err := os.Stat(absDocsDir); err == nil {
+				// Check if index.html exists in this directory
+				if _, err := os.Stat(filepath.Join(absDocsDir, "index.html")); err == nil {
+					// Serve each docs directory at /docs-{name}/ or /docs/
+					dirName := filepath.Base(absDocsDir)
+					if dirName == "docs" {
+						http.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir(absDocsDir))))
+						fmt.Printf("  ✓ Serving docs from: %s\n", absDocsDir)
+					} else {
+						http.Handle("/"+dirName+"/", http.StripPrefix("/"+dirName+"/", http.FileServer(http.Dir(absDocsDir))))
+						fmt.Printf("  ✓ Serving %s from: %s\n", dirName, absDocsDir)
+					}
+				}
 			}
 		}
 	}
