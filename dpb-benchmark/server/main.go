@@ -50,25 +50,44 @@ func main() {
 	fs := http.FileServer(http.Dir(dashboardDir))
 	http.Handle("/", fs)
 	
-	// Serve docs from multiple locations if workspace root found
+	// Serve docs from multiple locations
+	docsDirs := []string{}
+	
+	// Add docs directories from workspace root
 	if workspaceRoot != "" {
-		// Serve docs-typescript, docs-go, docs-rust, and docs directories
-		docsDirs := []string{
+		docsDirs = append(docsDirs,
 			filepath.Join(workspaceRoot, "docs-typescript"),
 			filepath.Join(workspaceRoot, "docs-go"),
 			filepath.Join(workspaceRoot, "docs-rust"),
 			filepath.Join(workspaceRoot, "docs"),
+		)
+	}
+	
+	// Also check parent directory (for cases where docs are in sibling directories)
+	if parentDir := filepath.Dir(dashboardDir); parentDir != dashboardDir {
+		// Check for dependency-buster-main/docs or similar patterns
+		parent := filepath.Dir(parentDir)
+		if parent != parentDir {
+			// Look for common workspace patterns
+			patterns := []string{
+				filepath.Join(parent, "dependency-buster-main", "docs"),
+				filepath.Join(parent, "dependency-buster-main", "docs-typescript"),
+				filepath.Join(parent, "dependency-buster-main", "docs-go"),
+				filepath.Join(parent, "dependency-buster-main", "docs-rust"),
+			}
+			docsDirs = append(docsDirs, patterns...)
 		}
-		
-		for _, docsDir := range docsDirs {
-			if _, err := os.Stat(docsDir); err == nil {
-				// Serve each docs directory at /docs-{name}/ or /docs/
-				dirName := filepath.Base(docsDir)
-				if dirName == "docs" {
-					http.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir(docsDir))))
-				} else {
-					http.Handle("/"+dirName+"/", http.StripPrefix("/"+dirName+"/", http.FileServer(http.Dir(docsDir))))
-				}
+	}
+	
+	// Serve all found docs directories
+	for _, docsDir := range docsDirs {
+		if _, err := os.Stat(docsDir); err == nil {
+			// Serve each docs directory at /docs-{name}/ or /docs/
+			dirName := filepath.Base(docsDir)
+			if dirName == "docs" {
+				http.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir(docsDir))))
+			} else {
+				http.Handle("/"+dirName+"/", http.StripPrefix("/"+dirName+"/", http.FileServer(http.Dir(docsDir))))
 			}
 		}
 	}
