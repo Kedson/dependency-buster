@@ -90,6 +90,8 @@ func main() {
 	}
 	
 	// Serve all found docs directories
+	// Track registered routes to avoid duplicates
+	registeredRoutes := make(map[string]bool)
 	for _, docsDir := range docsDirs {
 		if absDocsDir, err := filepath.Abs(docsDir); err == nil {
 			if _, err := os.Stat(absDocsDir); err == nil {
@@ -97,11 +99,17 @@ func main() {
 				if _, err := os.Stat(filepath.Join(absDocsDir, "index.html")); err == nil {
 					// Serve each docs directory at /docs-{name}/ or /docs/
 					dirName := filepath.Base(absDocsDir)
+					var route string
 					if dirName == "docs" {
-						http.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir(absDocsDir))))
-						fmt.Printf("  ✓ Serving docs from: %s\n", absDocsDir)
+						route = "/docs/"
 					} else {
-						http.Handle("/"+dirName+"/", http.StripPrefix("/"+dirName+"/", http.FileServer(http.Dir(absDocsDir))))
+						route = "/" + dirName + "/"
+					}
+					
+					// Only register if not already registered
+					if !registeredRoutes[route] {
+						http.Handle(route, http.StripPrefix(route, http.FileServer(http.Dir(absDocsDir))))
+						registeredRoutes[route] = true
 						fmt.Printf("  ✓ Serving %s from: %s\n", dirName, absDocsDir)
 					}
 				}
