@@ -181,7 +181,7 @@ GO_BINARY="$WORKSPACE_DIR/dpb-mcp-go/build/dpb-mcp"
 RUST_BINARY="$WORKSPACE_DIR/dpb-mcp-rust/target/release/dpb-mcp"
 
 # Analysis tools to run
-declare -a TOOLS=("analyze_dependencies" "analyze_psr4" "detect_namespaces" "audit_security" "analyze_licenses")
+declare -a TOOLS=("analyze_dependencies" "analyze_psr4" "detect_namespaces" "audit_security" "analyze_licenses" "generate_mkdocs_docs")
 
 # Function to get file size in bytes
 get_size_bytes() {
@@ -263,7 +263,7 @@ run_comprehensive_benchmark() {
     local tool_times=""
     local tool_index=3
     for tool in "${TOOLS[@]}"; do
-        echo -e "${BLUE}[$tool_index/7]${NC} Running $tool..." >&2
+        echo -e "${BLUE}[$tool_index/${#TOOLS[@]}]${NC} Running $tool..." >&2
         local output_file="$RESULTS_DIR/${name}_${tool}.json"
         local tool_time=$(run_tool "$cmd" "$tool" "$output_file")
         tool_times="$tool_times\"$tool\":$tool_time,"
