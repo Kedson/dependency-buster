@@ -133,6 +133,21 @@ Once configured, the AI assistant can use dependency-buster tools:
 @dependency-buster analyze_dependencies for this project
 @dependency-buster audit_security to check for vulnerabilities
 @dependency-buster analyze_licenses to verify compliance
+@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo
+```
+
+**Documentation Generation Examples:**
+```
+@dependency-buster generate_mkdocs_docs repo_path=/Users/me/my-project
+@dependency-buster generate_mkdocs_docs repo_path=/Users/me/my-project output_dir=./docs include_changelog=true format=mkdocs
+@dependency-buster generate_mkdocs_docs repo_path=/Users/me/my-project format=html
+```
+
+**Natural Language:**
+```
+Generate MkDocs documentation for this project
+Create documentation site with all dependency analysis
+Generate docs in ./docs directory with changelog
 ```
 
 ---
@@ -174,10 +189,21 @@ Add to `.vscode/tasks.json`:
       "type": "shell",
       "command": "echo '{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"audit_security\",\"arguments\":{\"repo_path\":\"${workspaceFolder}\"}},\"id\":1}' | node /path/to/dpb-mcp-workspace/dpb-mcp-typescript/build/server.js",
       "problemMatcher": []
+    },
+    {
+      "label": "Generate Documentation",
+      "type": "shell",
+      "command": "echo '{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"generate_mkdocs_docs\",\"arguments\":{\"repo_path\":\"${workspaceFolder}\",\"output_dir\":\"${workspaceFolder}/docs\",\"include_changelog\":true,\"format\":\"mkdocs\"}},\"id\":1}' | node /path/to/dpb-mcp-workspace/dpb-mcp-typescript/build/server.js",
+      "problemMatcher": []
     }
   ]
 }
 ```
+
+**Running Tasks:**
+- Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
+- Type "Tasks: Run Task"
+- Select "Generate Documentation"
 
 ---
 
@@ -215,10 +241,29 @@ For security auditing, you may want manual approval:
 
 ### Using in Cline
 
+**Basic Usage:**
 ```
 Use the dependency-buster MCP to analyze this project's dependencies
 Check for security vulnerabilities using dependency-buster
 Generate a license report with dependency-buster
+```
+
+**Documentation Generation:**
+```
+Generate MkDocs documentation for this project using dependency-buster
+Create documentation site with all analysis results
+Use dependency-buster to generate docs in ./docs directory
+```
+
+**Direct Tool Calls:**
+Cline supports direct tool invocation. In the chat, you can ask:
+```
+@dependency-buster generate_mkdocs_docs repo_path=/absolute/path/to/project
+```
+
+Or use natural language:
+```
+Generate comprehensive documentation for this repository using dependency-buster's generate_mkdocs_docs tool
 ```
 
 ---
@@ -263,6 +308,19 @@ claude
 # Or run specific tools
 > @dependency-buster audit_security
 > @dependency-buster analyze_dependencies
+
+# Generate documentation
+> @dependency-buster generate_mkdocs_docs repo_path=/path/to/repo
+
+# With options
+> @dependency-buster generate_mkdocs_docs repo_path=/path/to/repo output_dir=./docs include_changelog=true format=mkdocs
+```
+
+**Natural Language Requests:**
+```
+Generate MkDocs documentation for this project
+Create documentation site with dependency analysis
+Generate docs with changelog in ./docs directory
 ```
 
 ### Programmatic Usage
