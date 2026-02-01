@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io)
 
-**Latest Release:** [v1.1.0](./RELEASE_NOTES.md) - Native HTML Documentation Generation (No Python Required)
+**Latest Release:** [v1.1.1](./RELEASE_NOTES.md) - Documentation Rendering Fixes (TypeScript & Go)
 
 📖 **Documentation:**
 - [Release Notes](./RELEASE_NOTES.md) - What's new in v1.1.0

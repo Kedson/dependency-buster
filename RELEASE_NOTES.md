@@ -1,5 +1,60 @@
 # dependency-buster Release Notes
 
+## Version 1.1.1 - Documentation Rendering Fixes
+
+**Release Date:** February 1, 2026
+
+### 🐛 Critical Bug Fixes
+
+This patch release fixes critical documentation rendering issues discovered after v1.1.0:
+
+#### TypeScript Documentation Fixes
+- **Fixed double markdown processing** - TypeScript was converting markdown to HTML server-side, then trying to parse it again client-side, causing broken rendering
+- **Fixed template literal escaping** - Proper escaping prevents JavaScript syntax errors when embedding markdown content
+- **Added DOM ready checks** - Ensures content renders correctly even if script executes before DOM is ready
+
+#### Go Documentation Fixes
+- **Fixed empty documentation sections** - Go documentation was generating empty divs because JavaScript strings weren't properly escaped
+- **Fixed template literal usage** - Now uses JavaScript template literals (backticks) instead of double quotes for better string handling
+- **Improved JavaScript escaping** - Properly escapes backticks, dollar signs, newlines, and other special characters
+- **Added DOM ready checks** - Ensures reliable content rendering
+
+#### Dashboard Server Fixes
+- **Fixed duplicate route registration panic** - Server was crashing when trying to register the same documentation route multiple times
+- **Fixed browser opening timing** - Server now verifies it's actually listening before opening the browser
+- **Fixed ANALYSIS_DATA hardcoding** - Dashboard template now uses empty default (`{}`) instead of stale 438KB JSON data
+
+### Technical Details
+
+**TypeScript Changes:**
+- Pre-escape markdown content before embedding in HTML template
+- Use template literals with proper escaping for markdown variables
+- Add DOM ready state checks before rendering content
+
+**Go Changes:**
+- Use template literals (backticks) for JavaScript string constants
+- Improved `escapeJS` function handles all special characters correctly
+- Add DOM ready state checks with fallback for immediate execution
+
+**Both Implementations:**
+- Embed raw markdown in JavaScript variables (not pre-converted HTML)
+- Render markdown client-side using `marked.js` library
+- Handle DOM ready state properly to ensure content renders
+
+### Migration
+
+No migration needed - these are bug fixes. If you're experiencing:
+- TypeScript docs showing broken HTML or PHP content
+- Go docs showing empty sections
+- Dashboard server crashes on startup
+
+Simply rebuild and regenerate documentation:
+```bash
+./build-all.sh
+```
+
+---
+
 ## Version 1.1.0 - Native Documentation Generation Release
 
 **Release Date:** January 26, 2026
@@ -71,16 +126,23 @@ Each implementation generates:
 - Native HTML generation with embedded `marked.js` for markdown rendering
 - Client-side rendering for better performance
 - Self-contained single-file HTML output
+- **Fixed:** Double markdown processing issue - now embeds raw markdown and renders client-side only
+- **Fixed:** Template literal escaping for proper JavaScript string handling
+- **Fixed:** DOM ready state handling to ensure content renders correctly
 
 **Go Implementation:**
 - Native HTML generation with embedded CSS and JavaScript
 - Proper escaping of JavaScript strings in Go templates
 - Efficient file I/O operations
+- **Fixed:** Empty documentation sections - now uses template literals with proper escaping
+- **Fixed:** JavaScript string escaping for backticks, dollar signs, and newlines
+- **Fixed:** DOM ready state handling for reliable content rendering
 
 **Rust Implementation:**
 - Native HTML generation with string building
 - Fixed borrow checker issues for concurrent operations
 - Proper escaping of JavaScript template literals
+- Working correctly - no fixes needed
 
 #### Server Enhancements
 
@@ -90,6 +152,9 @@ Each implementation generates:
 - ✅ Enhanced static file serving for nested directory structures
 - ✅ Recursive path checking (up to 4 parent levels)
 - ✅ Debug output for documentation directory detection
+- ✅ **Fixed:** Duplicate route registration panic - now tracks registered routes
+- ✅ **Fixed:** Browser opening timing - verifies server is listening before opening
+- ✅ **Fixed:** ANALYSIS_DATA hardcoding - uses empty default, populated by run-benchmark.sh
 
 **Benchmark Integration:**
 - Documentation generation now included in benchmark suite
@@ -113,6 +178,12 @@ Documentation generation benchmarks (average times):
 3. **Fixed async race conditions** - Improved documentation availability checking
 4. **Fixed error reporting** - Actual error messages now displayed instead of generic warnings
 5. **Fixed dashboard docs detection** - Server now finds docs in nested directory structures
+6. **Fixed TypeScript documentation rendering** - Resolved double markdown processing issue that caused broken HTML output
+7. **Fixed Go documentation empty sections** - Fixed JavaScript string escaping and template literal handling
+8. **Fixed duplicate route registration** - Prevented server panic when registering multiple documentation routes
+9. **Fixed browser opening timing** - Server now verifies it's listening before opening browser
+10. **Fixed ANALYSIS_DATA hardcoding** - Dashboard now uses empty default instead of stale 438KB JSON data
+11. **Fixed template literal escaping** - Proper escaping for TypeScript and Go implementations prevents rendering errors
 
 ### 📝 Documentation Updates
 
