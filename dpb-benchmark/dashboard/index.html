@@ -2090,37 +2090,51 @@ code docs-rust/index.md</code></pre>
         
         function openDocumentation() {
             // Try to find and open documentation HTML files
+            // Check server-served paths first, then relative paths
             const docsPaths = [
+                '/docs-typescript/index.html',
+                '/docs-go/index.html',
+                '/docs-rust/index.html',
+                '/docs/index.html',
                 '../docs-typescript/index.html',
                 '../docs-go/index.html',
                 '../docs-rust/index.html',
+                '../docs/index.html',
                 '../../docs-typescript/index.html',
                 '../../docs-go/index.html',
                 '../../docs-rust/index.html',
+                '../../docs/index.html',
                 'docs-typescript/index.html',
                 'docs-go/index.html',
-                'docs-rust/index.html'
+                'docs-rust/index.html',
+                'docs/index.html'
             ];
             
+            let checked = 0;
             let found = false;
-            for (const path of docsPaths) {
+            const totalPaths = docsPaths.length;
+            
+            docsPaths.forEach(path => {
                 // Check if file exists by trying to fetch it
                 fetch(path, { method: 'HEAD' })
                     .then(response => {
+                        checked++;
                         if (response.ok && !found) {
                             found = true;
                             window.open(path, '_blank');
+                        } else if (checked === totalPaths && !found) {
+                            // All paths checked, none found
+                            alert('Documentation not found. Please generate docs first using:\n\n@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo format=html\n\nOr use the "View Docs Guide" for instructions.');
                         }
                     })
-                    .catch(() => {});
-            }
-            
-            // If no docs found, show a message
-            setTimeout(() => {
-                if (!found) {
-                    alert('Documentation not found. Please generate docs first using:\n\n@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo format=html\n\nOr use the "View Docs Guide" for instructions.');
-                }
-            }, 500);
+                    .catch(() => {
+                        checked++;
+                        if (checked === totalPaths && !found) {
+                            // All paths checked, none found
+                            alert('Documentation not found. Please generate docs first using:\n\n@dependency-buster generate_mkdocs_docs repo_path=/path/to/repo format=html\n\nOr use the "View Docs Guide" for instructions.');
+                        }
+                    });
+            });
         }
         
         return { init, showTab, showOutput, runSmokeTests, closeTestModal, clearTestHistory, showDocsModal, closeDocsModal, openDocumentation };
