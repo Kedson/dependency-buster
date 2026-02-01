@@ -402,12 +402,16 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
         fi
         
         # Generate documentation with all three implementations
+        # Generate documentation using native HTML generation (no Python required)
+        # All three implementations (TypeScript, Go, Rust) generate docs independently
+        # Each creates self-contained HTML files with embedded CSS and JavaScript
+        # See RELEASE_NOTES.md v1.1.0 for details
         echo -e "${BLUE}📚 Generating documentation with all implementations (HTML format)...${NC}"
         echo ""
         
         DOCS_GENERATED=0
         
-        # TypeScript implementation
+        # TypeScript implementation - generates docs-typescript/index.html
         DOCS_TS_DIR="$WORKSPACE/docs-typescript"
         if [ -f "$WORKSPACE/dpb-mcp-typescript/build/server.js" ]; then
             echo -e "${BLUE}  Generating with TypeScript...${NC}"
@@ -447,7 +451,8 @@ if [ -f "$WORKSPACE/dpb-benchmark/scripts/run-benchmark.sh" ]; then
             echo -e "${YELLOW}    ⚠${NC}  Go binary not found: $WORKSPACE/dpb-mcp-go/build/dpb-mcp"
         fi
         
-        # Rust implementation
+        # Rust implementation - generates docs-rust/index.html
+        # Uses native HTML generation with embedded CSS/JS (see src/analyzer/mkdocs.rs)
         DOCS_RUST_DIR="$WORKSPACE/docs-rust"
         if [ -f "$WORKSPACE/dpb-mcp-rust/target/release/dpb-mcp" ]; then
             echo -e "${BLUE}  Generating with Rust...${NC}"
